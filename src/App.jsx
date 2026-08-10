@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { initialGuildMembers } from "./initialGuildMembers.js";
 import { supabase } from "./supabase.js";
+import { SaveChangesBar } from "./SaveChangesBar.jsx";
 
 const weekDays = [
   { key: "wed", label: "수", full: "수요일", date: "8/12" },
@@ -371,10 +372,12 @@ export function App() {
     try { return JSON.parse(localStorage.getItem("loa-raid-schedule-v1")) ?? initialSchedule; }
     catch { return initialSchedule; }
   });
+  const [isDirty, setIsDirty] = useState(false);
   const [cloudStatus, setCloudStatus] = useState(supabase ? "connecting" : "offline");
   const [cloudMessage, setCloudMessage] = useState("");
   const cloudReadyRef = useRef(false);
   const lastSyncedFingerprintRef = useRef("");
+  const savedStateRef = useRef({ members, catalog, schedule });
 
   useEffect(() => {
     if (!supabase) return undefined;
@@ -387,9 +390,11 @@ export function App() {
         schedule: row.schedule ?? initialSchedule,
       };
       lastSyncedFingerprintRef.current = cloudFingerprint(nextState);
+      savedStateRef.current = nextState;
       setMembers(nextState.members);
       setCatalog(nextState.catalog);
       setSchedule(nextState.schedule);
+      setIsDirty(false);
     };
     const connect = async () => {
       setCloudStatus("connecting");
@@ -432,29 +437,41 @@ export function App() {
     };
   }, []);
 
-  useEffect(() => { localStorage.setItem("loa-raid-members-v2", JSON.stringify(members)); }, [members]);
-  useEffect(() => { localStorage.setItem("loa-raid-catalog-v1", JSON.stringify(catalog)); }, [catalog]);
-  useEffect(() => { localStorage.setItem("loa-raid-schedule-v1", JSON.stringify(schedule)); }, [schedule]);
-  useEffect(() => {
-    if (!supabase || !cloudReadyRef.current) return undefined;
+  const updateMembers = (value) => { setIsDirty(true); setMembers(value); };
+  const updateCatalog = (value) => { setIsDirty(true); setCatalog(value); };
+  const updateSchedule = (value) => { setIsDirty(true); setSchedule(value); };
+  const cancelChanges = () => {
+    const saved = savedStateRef.current;
+    setMembers(saved.members);
+    setCatalog(saved.catalog);
+    setSchedule(saved.schedule);
+    setIsDirty(false);
+  };
+  const saveChanges = async () => {
     const state = { members, catalog, schedule };
-    const fingerprint = cloudFingerprint(state);
-    if (fingerprint === lastSyncedFingerprintRef.current) return undefined;
-    setCloudStatus("saving");
-    const timer = setTimeout(async () => {
+    if (supabase && !cloudReadyRef.current) {
+      setCloudMessage("공용 DB 연결이 끝난 뒤 저장해주세요.");
+      return;
+    }
+    if (supabase) {
+      setCloudStatus("saving");
       const { error } = await supabase.from("raid_board_state").upsert({ id: "guild-main", ...state, updated_at: new Date().toISOString() });
       if (error) {
         setCloudStatus("error");
         setCloudMessage(error.message);
         return;
       }
-      lastSyncedFingerprintRef.current = fingerprint;
+      lastSyncedFingerprintRef.current = cloudFingerprint(state);
       setCloudStatus("connected");
       setCloudMessage("");
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [members, catalog, schedule]);
+    }
+    localStorage.setItem("loa-raid-members-v2", JSON.stringify(state.members));
+    localStorage.setItem("loa-raid-catalog-v1", JSON.stringify(state.catalog));
+    localStorage.setItem("loa-raid-schedule-v1", JSON.stringify(state.schedule));
+    savedStateRef.current = state;
+    setIsDirty(false);
+  };
 
   const cloudText = { connecting: "공용 DB 연결 중", connected: "공용 DB 연결됨", saving: "공용 일정 저장 중", error: "공용 DB 설정 필요", offline: "브라우저에만 저장 중" }[cloudStatus];
-  return <div className="app-shell"><AppHeader activeTab={activeTab} setActiveTab={setActiveTab} /><div className={`cloud-status ${cloudStatus}`} title={cloudMessage}><i /><span>{cloudText}</span>{cloudMessage && <small>{cloudMessage}</small>}<a href="https://supabase.com/dashboard/project/srdooyseixgxljsdmecc" target="_blank" rel="noreferrer">DB 관리</a></div><div className="page-wrap">{activeTab === "schedule" && <ScheduleView members={members} catalog={catalog} schedule={schedule} setSchedule={setSchedule} />}{activeTab === "personal" && <PersonalScheduleView members={members} schedule={schedule} catalog={catalog} />}{activeTab === "members" && <MembersView members={members} setMembers={setMembers} schedule={schedule} catalog={catalog} />}{activeTab === "raids" && <RaidsView catalog={catalog} setCatalog={setCatalog} />}</div></div>;
+  return <div className="app-shell"><AppHeader activeTab={activeTab} setActiveTab={setActiveTab} /><div className={`cloud-status ${cloudStatus}`} title={cloudMessage}><i /><span>{cloudText}</span>{cloudMessage && <small>{cloudMessage}</small>}<a href="https://supabase.com/dashboard/project/srdooyseixgxljsdmecc" target="_blank" rel="noreferrer">DB 관리</a></div><div className="page-wrap">{activeTab === "schedule" && <ScheduleView members={members} catalog={catalog} schedule={schedule} setSchedule={updateSchedule} />}{activeTab === "personal" && <PersonalScheduleView members={members} schedule={schedule} catalog={catalog} />}{activeTab === "members" && <MembersView members={members} setMembers={updateMembers} schedule={schedule} catalog={catalog} />}{activeTab === "raids" && <RaidsView catalog={catalog} setCatalog={updateCatalog} />}<SaveChangesBar isDirty={isDirty} onCancel={cancelChanges} onSave={saveChanges} /></div></div>;
 }
