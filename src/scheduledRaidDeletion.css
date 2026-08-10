@@ -1,0 +1,16 @@
+.delete-raid {
+  margin-left: auto;
+  padding: 4px 8px;
+  color: #5d1717;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  background: rgb(255 255 255 / 72%);
+  border: 1px solid rgb(93 23 23 / 55%);
+  cursor: pointer;
+}
+
+.delete-raid:hover {
+  color: #fff;
+  background: #9e3030;
+}

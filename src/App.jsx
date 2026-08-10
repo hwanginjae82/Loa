@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { initialGuildMembers } from "./initialGuildMembers.js";
 import { supabase } from "./supabase.js";
 import { SaveChangesBar } from "./SaveChangesBar.jsx";
+import { canDeleteScheduledRaid, removeScheduledRaid } from "./scheduledRaidDeletion.js";
+import "./scheduledRaidDeletion.css";
 
 const weekDays = [
   { key: "wed", label: "수", full: "수요일", date: "8/12" },
@@ -132,12 +134,12 @@ function StatusBadge({ character, day, raid }) {
   return <span className={`warning ${unavailable ? "absent" : "level-short"}`} title={reason}>{label}</span>;
 }
 
-function RaidCard({ instance, catalog, roster, day, onSlotClick }) {
+function RaidCard({ instance, catalog, roster, day, onSlotClick, canDelete, onDelete }) {
   const raid = catalog.find((item) => item.id === instance.catalogId);
   const slots = Array.from({ length: raid.size }, (_, index) => instance.characterIds[index] ?? null);
   const parties = raid.size === 8 ? [slots.slice(0, 4), slots.slice(4, 8)] : [slots];
   return <article className="raid-card">
-    <div className={`raid-title ${raid.color}`} style={{ background: getRaidColor(raid) }}><strong>{raid.name} {raid.difficulty}</strong><span>{raid.size}인</span></div>
+    <div className={`raid-title ${raid.color}`} style={{ background: getRaidColor(raid) }}><strong>{raid.name} {raid.difficulty}</strong><span>{raid.size}인</span>{canDelete && <button type="button" className="delete-raid" onClick={onDelete}>삭제</button>}</div>
     <div className="requirement-row"><span>입장 레벨</span><strong>Lv. {raid.minLevel}</strong><span>획득 골드</span><strong>{formatNumber(raid.gold)}</strong></div>
     {parties.map((party, partyIndex) => <div className="party" key={partyIndex}>
       <div className="party-label">{raid.size === 8 ? `${partyIndex + 1}파티` : "파티"}</div>
@@ -206,6 +208,9 @@ function ScheduleView({ members, catalog, schedule, setSchedule }) {
     setAssignment(null);
   };
   const addRaid = (catalogId) => { setSchedule((current) => ({ ...current, [selectedDay]: [...current[selectedDay], { id: Date.now(), catalogId, characterIds: [] }] })); setShowAddRaid(false); };
+  const deleteRaid = (raidId) => {
+    setSchedule((current) => ({ ...current, [selectedDay]: removeScheduledRaid(current[selectedDay] ?? [], raidId) }));
+  };
   const warningCount = useMemo(() => dayRaids.reduce((count, instance) => {
     const raid = catalog.find((item) => item.id === instance.catalogId);
     return count + instance.characterIds.filter((id) => { const character = roster.find((item) => item.id === id); return character && (character.unavailable.includes(selectedDay) || character.itemLevel < raid.minLevel); }).length;
@@ -214,7 +219,7 @@ function ScheduleView({ members, catalog, schedule, setSchedule }) {
   return <>
     <section className="week-toolbar"><button className="text-button">이전 주</button><div><span>2026년 8월 12일</span><strong>8월 3주차</strong></div><button className="text-button">다음 주</button></section>
     <section className="day-tabs" aria-label="요일 선택">{weekDays.map((day) => <button key={day.key} className={`${selectedDay === day.key ? "active" : ""} ${day.key === "sun" ? "sunday" : ""}`} onClick={() => setSelectedDay(day.key)}><span>{day.label}</span><strong>{day.date}</strong><small>{schedule[day.key]?.length ?? 0}개</small></button>)}</section>
-    <div className="content-grid"><main className="schedule-panel"><div className="section-heading"><div><p>{dayInfo.date}</p><h2>{dayInfo.full} 공대 일정</h2></div><button className="primary" onClick={() => setShowAddRaid(true)}>+ 레이드 추가</button></div>{dayRaids.map((instance) => <RaidCard key={instance.id} instance={instance} catalog={catalog} roster={roster} day={selectedDay} onSlotClick={(instanceId, slotIndex) => setAssignment({ instanceId, slotIndex })} />)}</main>
+    <div className="content-grid"><main className="schedule-panel"><div className="section-heading"><div><p>{dayInfo.date}</p><h2>{dayInfo.full} 공대 일정</h2></div><button className="primary" onClick={() => setShowAddRaid(true)}>+ 레이드 추가</button></div>{dayRaids.map((instance) => <RaidCard key={instance.id} instance={instance} catalog={catalog} roster={roster} day={selectedDay} onSlotClick={(instanceId, slotIndex) => setAssignment({ instanceId, slotIndex })} canDelete={canDeleteScheduledRaid(instance)} onDelete={() => deleteRaid(instance.id)} />)}</main>
       <aside className="summary-panel"><p className="summary-title">오늘의 편성 상태</p><div className="summary-number"><strong>{dayRaids.length}</strong><span>개 레이드</span></div><div className={`notice ${warningCount ? "has-warning" : ""}`}><strong>{warningCount ? `${warningCount}개 슬롯 확인 필요` : "편성 이상 없음"}</strong><p>{warningCount ? "멤버 불가 요일 또는 캐릭터 입장 레벨을 확인해주세요." : "모든 캐릭터가 참가 조건을 만족합니다."}</p></div><div className="legend"><span><i className="dot red" />불가/레벨 미달</span><span><i className="dot outline" />빈자리</span></div></aside>
     </div>
     {assignment && <AssignmentModal members={members} roster={roster} assignment={assignment} schedule={schedule} dayRaids={dayRaids} catalog={catalog} selectedDay={selectedDay} onAssign={assignCharacter} onClose={() => setAssignment(null)} />}
