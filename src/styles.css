@@ -136,3 +136,55 @@ button { cursor: pointer; }
   .page-wrap { width: calc(100% - 12px); }.week-toolbar .text-button { padding: 7px; font-size: 10px; }.raid-card { border-width: 1px; }.raid-title { height: 36px; }.raid-title strong { font-size: 13px; }.party { grid-template-columns: 36px 1fr; }.party-label { font-size: 9px; writing-mode: vertical-rl; }.slot { font-size: 9px; }.section-heading { padding: 0 4px; }.modal { padding: 16px; }.form-row { grid-template-columns: 1fr; }.member-stats { flex-wrap: wrap; }
   .character-grid { grid-template-columns: 1fr; }.lookup-form { grid-template-columns: 1fr; }.lookup-form .primary { width: 100%; }
 }
+
+/* Readability pass: schedules are normally read at a glance from a distance. */
+:root { font-size: 16px; }
+.text-button, .primary { font-size: 14px; }
+.raid-title strong { font-size: 17px; }
+.raid-title span { font-size: 12px; }
+.requirement-row { min-height: 36px; }
+.requirement-row > * { font-size: 13px; }
+.party-label { font-size: 13px; }
+.role-labels span { padding: 6px; font-size: 12px; }
+.slot { height: 48px; font-size: 14px; }
+.section-heading p, .week-toolbar span { font-size: 13px; }
+.cloud-status { font-size: 12px; }
+
+@media (max-width: 820px) {
+  .requirement-row > * { font-size: 11px; }
+  .party-label { font-size: 11px; }
+  .role-labels span { font-size: 11px; }
+  .slot { height: 54px; font-size: 12px; }
+}
+
+@media (max-width: 430px) {
+  .raid-title strong { font-size: 15px; }
+  .party-label { font-size: 10px; }
+  .slot { font-size: 11px; }
+}
+
+/* Member management and personal schedule use the same readable scale. */
+.info-banner strong { font-size: 14px; }
+.info-banner span, .member-profile span { font-size: 12px; }
+.member-profile strong, .member-roster-head > div:nth-child(2) strong { font-size: 16px; }
+.member-stats span, .unavailable-days small { font-size: 11px; }
+.member-stats strong { font-size: 14px; }
+.unavailable-days button, .refresh, .member-actions button { font-size: 12px; }
+.rule-head { font-size: 12px; }
+.raid-rule-list article strong { font-size: 15px; }
+.raid-rule-list article span, .raid-rule-list article b { font-size: 13px; }
+.character-grid strong { font-size: 13px; }
+.character-grid span { font-size: 11px; }
+.character-grid b { font-size: 12px; }
+.character-grid button { font-size: 10px; }
+.member-assignment-chip { font-size: 11px !important; }
+.member-assignment-chip b { font-size: 10px !important; }
+.personal-settings label, .personal-settings small { font-size: 11px; }
+.my-character-chips button { font-size: 11px; }
+.my-character-chips span { font-size: 10px; }
+.personal-week header strong { font-size: 14px; }
+.personal-week header span { font-size: 11px; }
+.personal-week header b { font-size: 10px; }
+.personal-week section strong { font-size: 12px; }
+.personal-week section span { font-size: 12px; }
+.personal-week section small, .personal-week article p { font-size: 10px; }
