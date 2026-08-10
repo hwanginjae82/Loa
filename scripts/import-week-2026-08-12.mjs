@@ -214,3 +214,8 @@ if (process.argv.includes("--apply")) {
   if (updateError) throw updateError;
   console.log("APPLIED");
 }
+if (process.argv.includes("--restore-week-only")) {
+  const { error: updateError } = await supabase.from("raid_board_state").update({ schedule: nextSchedule, updated_at: new Date().toISOString() }).eq("id", "guild-main");
+  if (updateError) throw updateError;
+  console.log("RESTORED_WEEK_ONLY");
+}
