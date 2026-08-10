@@ -4,6 +4,7 @@ import { supabase } from "./supabase.js";
 import { SaveChangesBar } from "./SaveChangesBar.jsx";
 import { canDeleteScheduledRaid, removeScheduledRaid } from "./scheduledRaidDeletion.js";
 import "./scheduledRaidDeletion.css";
+import { migrateRosterSchedule } from "./rosterRefreshMigration.js";
 
 const weekDays = [
   { key: "wed", label: "수", full: "수요일", date: "8/12" },
@@ -243,8 +244,11 @@ function RosterSyncModal({ member, onClose, onSave }) {
     } catch (error) { setStatus("error"); setMessage(error.message); }
   };
   const toggleCharacter = (id) => setSelectedIds((current) => current.includes(id) ? current.filter((item) => item !== id) : current.length < 6 ? [...current, id] : current);
-  const saveSelected = () => onSave(characters.filter((character) => selectedIds.includes(character.id)));
-  return <div className="modal-backdrop" role="presentation" onMouseDown={onClose}><section className="modal sync-modal" role="dialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}><div className="modal-heading"><div><p>{member.name} 멤버</p><h3>원정대 캐릭터 조회</h3></div><button onClick={onClose}>닫기</button></div><p className="modal-description">대표 캐릭터명 하나로 같은 원정대를 조회한 뒤, 실제 공대에 사용할 캐릭터를 최대 6개까지 선택해 저장합니다.</p><form className="lookup-form" onSubmit={search}><label>대표 캐릭터명<input required value={characterName} onChange={(event) => setCharacterName(event.target.value)} /></label><button className="primary" disabled={status === "loading"}>{status === "loading" ? "조회 중" : "API 조회"}</button></form>{status === "error" && <div className="api-error"><strong>연결 확인 필요</strong><span>{message}</span></div>}{status === "success" && <><div className="selection-count"><strong>{selectedIds.length}/6 선택</strong><span>캐릭터를 눌러 선택하거나 해제하세요.</span></div><div className="sync-result">{characters.map((character) => <button type="button" className={selectedIds.includes(character.id) ? "selected" : ""} aria-pressed={selectedIds.includes(character.id)} key={character.id} onClick={() => toggleCharacter(character.id)}><strong>{character.name}</strong><span>{character.className} · Lv. {character.itemLevel}</span><b>{character.role}</b></button>)}</div><button className="primary full" disabled={!selectedIds.length} onClick={saveSelected}>선택한 {selectedIds.length}개 캐릭터 저장</button></>}</section></div>;
+  const saveSelected = () => {
+    const missing = onSave(characters.filter((character) => selectedIds.includes(character.id)));
+    if (missing?.length) setMessage(`일정에 사용 중인 ${missing.join(", ")} 캐릭터도 선택해주세요.`);
+  };
+  return <div className="modal-backdrop" role="presentation" onMouseDown={onClose}><section className="modal sync-modal" role="dialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}><div className="modal-heading"><div><p>{member.name} 멤버</p><h3>원정대 캐릭터 조회</h3></div><button onClick={onClose}>닫기</button></div><p className="modal-description">대표 캐릭터명 하나로 같은 원정대를 조회한 뒤, 실제 공대에 사용할 캐릭터를 최대 6개까지 선택해 저장합니다.</p><form className="lookup-form" onSubmit={search}><label>대표 캐릭터명<input required value={characterName} onChange={(event) => setCharacterName(event.target.value)} /></label><button className="primary" disabled={status === "loading"}>{status === "loading" ? "조회 중" : "API 조회"}</button></form>{message && <div className="api-error"><strong>{status === "error" ? "연결 확인 필요" : "일정 캐릭터 확인 필요"}</strong><span>{message}</span></div>}{status === "success" && <><div className="selection-count"><strong>{selectedIds.length}/6 선택</strong><span>캐릭터를 눌러 선택하거나 해제하세요.</span></div><div className="sync-result">{characters.map((character) => <button type="button" className={selectedIds.includes(character.id) ? "selected" : ""} aria-pressed={selectedIds.includes(character.id)} key={character.id} onClick={() => toggleCharacter(character.id)}><strong>{character.name}</strong><span>{character.className} · Lv. {character.itemLevel}</span><b>{character.role}</b></button>)}</div><button className="primary full" disabled={!selectedIds.length} onClick={saveSelected}>선택한 {selectedIds.length}개 캐릭터 저장</button></>}</section></div>;
 }
 
 function MemberAliasEditor({ member, onRename }) {
@@ -307,7 +311,7 @@ function MemberRosterCard({ member, schedule, catalog, onRename, onColorChange, 
   </article>;
 }
 
-function MembersView({ members, setMembers, schedule, catalog }) {
+function MembersView({ members, setMembers, schedule, setSchedule, catalog }) {
   const [syncMemberId, setSyncMemberId] = useState(null);
   const toggleDay = (memberId, dayKey) => setMembers((current) => current.map((member) => member.id === memberId ? { ...member, unavailable: member.unavailable.includes(dayKey) ? member.unavailable.filter((day) => day !== dayKey) : [...member.unavailable, dayKey] } : member));
   const toggleRole = (memberId, characterId) => setMembers((current) => current.map((member) => member.id === memberId ? { ...member, characters: member.characters.map((character) => character.id === characterId && character.className === "발키리" ? { ...character, role: character.role === "서폿" ? "딜러" : "서폿" } : character) } : member));
@@ -316,7 +320,15 @@ function MembersView({ members, setMembers, schedule, catalog }) {
     .sort((left, right) => Number(left.active === false) - Number(right.active === false)));
   const renameMember = (memberId, name) => setMembers((current) => current.map((member) => member.id === memberId ? { ...member, name } : member));
   const changeMemberColor = (memberId, color) => setMembers((current) => current.map((member) => member.id === memberId ? { ...member, color } : member));
-  const saveRoster = (characters) => { setMembers((current) => current.map((member) => member.id === syncMemberId ? { ...member, characters: characters.slice(0, 6) } : member)); setSyncMemberId(null); };
+  const saveRoster = (characters) => {
+    const member = members.find((item) => item.id === syncMemberId);
+    const migration = migrateRosterSchedule({ previousCharacters: member.characters, refreshedCharacters: characters, schedule });
+    if (migration.missingAssignedNames.length) return migration.missingAssignedNames;
+    setMembers((current) => current.map((item) => item.id === syncMemberId ? { ...item, characters: characters.slice(0, 6) } : item));
+    setSchedule(migration.schedule);
+    setSyncMemberId(null);
+    return [];
+  };
   const syncingMember = members.find((member) => member.id === syncMemberId);
   const activeMembers = members.filter((member) => member.active !== false);
   const inactiveMembers = members.filter((member) => member.active === false);
@@ -478,5 +490,5 @@ export function App() {
   };
 
   const cloudText = { connecting: "공용 DB 연결 중", connected: "공용 DB 연결됨", saving: "공용 일정 저장 중", error: "공용 DB 설정 필요", offline: "브라우저에만 저장 중" }[cloudStatus];
-  return <div className="app-shell"><AppHeader activeTab={activeTab} setActiveTab={setActiveTab} /><div className={`cloud-status ${cloudStatus}`} title={cloudMessage}><i /><span>{cloudText}</span>{cloudMessage && <small>{cloudMessage}</small>}<a href="https://supabase.com/dashboard/project/srdooyseixgxljsdmecc" target="_blank" rel="noreferrer">DB 관리</a></div><div className="page-wrap">{activeTab === "schedule" && <ScheduleView members={members} catalog={catalog} schedule={schedule} setSchedule={updateSchedule} />}{activeTab === "personal" && <PersonalScheduleView members={members} schedule={schedule} catalog={catalog} />}{activeTab === "members" && <MembersView members={members} setMembers={updateMembers} schedule={schedule} catalog={catalog} />}{activeTab === "raids" && <RaidsView catalog={catalog} setCatalog={updateCatalog} />}<SaveChangesBar isDirty={isDirty} onCancel={cancelChanges} onSave={saveChanges} /></div></div>;
+  return <div className="app-shell"><AppHeader activeTab={activeTab} setActiveTab={setActiveTab} /><div className={`cloud-status ${cloudStatus}`} title={cloudMessage}><i /><span>{cloudText}</span>{cloudMessage && <small>{cloudMessage}</small>}<a href="https://supabase.com/dashboard/project/srdooyseixgxljsdmecc" target="_blank" rel="noreferrer">DB 관리</a></div><div className="page-wrap">{activeTab === "schedule" && <ScheduleView members={members} catalog={catalog} schedule={schedule} setSchedule={updateSchedule} />}{activeTab === "personal" && <PersonalScheduleView members={members} schedule={schedule} catalog={catalog} />}{activeTab === "members" && <MembersView members={members} setMembers={updateMembers} schedule={schedule} setSchedule={updateSchedule} catalog={catalog} />}{activeTab === "raids" && <RaidsView catalog={catalog} setCatalog={updateCatalog} />}<SaveChangesBar isDirty={isDirty} onCancel={cancelChanges} onSave={saveChanges} /></div></div>;
 }
