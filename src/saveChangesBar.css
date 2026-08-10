@@ -1,0 +1,58 @@
+.save-changes-bar {
+  position: sticky;
+  bottom: 16px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  max-width: 920px;
+  margin: 20px auto 0;
+  padding: 12px 14px;
+  color: #fff;
+  background: #1d2c20;
+  border: 2px solid #0f1d12;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 20%);
+}
+
+.save-changes-bar__message {
+  font-weight: 800;
+}
+
+.save-changes-bar__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.save-changes-bar button {
+  min-height: 38px;
+  padding: 7px 12px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  border: 1px solid #d2d9ca;
+}
+
+.save-changes-bar button:last-child {
+  color: #fff;
+  background: #2f7d42;
+  border-color: #79b787;
+}
+
+.save-changes-bar button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+@media (max-width: 560px) {
+  .save-changes-bar {
+    align-items: stretch;
+    flex-direction: column;
+    bottom: 8px;
+    margin-inline: 8px;
+  }
+
+  .save-changes-bar__actions button {
+    flex: 1;
+  }
+}
