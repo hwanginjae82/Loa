@@ -1,0 +1,1366 @@
+{
+  "id": "guild-main",
+  "members": [
+    {
+      "id": "guild-8",
+      "name": "김밥",
+      "color": "#dcb17a",
+      "active": true,
+      "characters": [
+        {
+          "id": "guild-8-1",
+          "name": "김밥과초밥",
+          "role": "딜러",
+          "className": "배틀마스터",
+          "earnsGold": true,
+          "itemLevel": 1781.67
+        },
+        {
+          "id": "guild-8-2",
+          "name": "서바이벌김밥",
+          "role": "딜러",
+          "className": "브레이커",
+          "earnsGold": true,
+          "itemLevel": 1770.83
+        },
+        {
+          "id": "guild-8-3",
+          "name": "돈까스김밥과초밥",
+          "role": "딜러",
+          "className": "디스트로이어",
+          "earnsGold": true,
+          "itemLevel": 1770.83
+        },
+        {
+          "id": "guild-8-4",
+          "name": "김밥and초밥",
+          "role": "딜러",
+          "className": "블레이드",
+          "earnsGold": true,
+          "itemLevel": 1755.83
+        },
+        {
+          "id": "guild-8-5",
+          "name": "초밥and김밥",
+          "role": "서폿",
+          "className": "홀리나이트",
+          "earnsGold": true,
+          "itemLevel": 1751.67
+        },
+        {
+          "id": "guild-8-6",
+          "name": "김밥초밥",
+          "role": "딜러",
+          "className": "가디언나이트",
+          "earnsGold": true,
+          "itemLevel": 1750.83
+        }
+      ],
+      "unavailable": [],
+      "representativeName": "김밥과초밥"
+    },
+    {
+      "id": "guild-9",
+      "name": "로젠",
+      "color": "#c7b4f3",
+      "active": true,
+      "characters": [
+        {
+          "id": "카마인:쪼꼬는팡팡",
+          "name": "쪼꼬는팡팡",
+          "role": "서폿",
+          "className": "도화가",
+          "earnsGold": true,
+          "itemLevel": 1780.83,
+          "serverName": "카마인"
+        },
+        {
+          "id": "카마인:쪼꼬는망고",
+          "name": "쪼꼬는망고",
+          "role": "서폿",
+          "className": "홀리나이트",
+          "earnsGold": true,
+          "itemLevel": 1770.83,
+          "serverName": "카마인"
+        },
+        {
+          "id": "카마인:로젠고양이택배",
+          "name": "로젠고양이택배",
+          "role": "서폿",
+          "className": "바드",
+          "earnsGold": true,
+          "itemLevel": 1725,
+          "serverName": "카마인"
+        }
+      ],
+      "unavailable": [],
+      "representativeName": "쪼꼬는팡팡"
+    },
+    {
+      "id": "guild-10",
+      "name": "반야",
+      "color": "#f3a6a6",
+      "active": true,
+      "characters": [
+        {
+          "id": "guild-10-1",
+          "name": "반야천성",
+          "role": "딜러",
+          "className": "건슬링어",
+          "earnsGold": true,
+          "itemLevel": 1779.17
+        },
+        {
+          "id": "guild-10-2",
+          "name": "황야의무법자김반야",
+          "role": "딜러",
+          "className": "데빌헌터",
+          "earnsGold": true,
+          "itemLevel": 1756.67
+        },
+        {
+          "id": "guild-10-3",
+          "name": "용조련사김반야",
+          "role": "딜러",
+          "className": "가디언나이트",
+          "earnsGold": true,
+          "itemLevel": 1732.5
+        },
+        {
+          "id": "guild-10-4",
+          "name": "격투가김반야",
+          "role": "딜러",
+          "className": "브레이커",
+          "earnsGold": true,
+          "itemLevel": 1732.5
+        },
+        {
+          "id": "guild-10-5",
+          "name": "사신김반야",
+          "role": "딜러",
+          "className": "소울이터",
+          "earnsGold": true,
+          "itemLevel": 1731.67
+        },
+        {
+          "id": "guild-10-6",
+          "name": "아이언맨김반야",
+          "role": "딜러",
+          "className": "스카우터",
+          "earnsGold": true,
+          "itemLevel": 1730
+        }
+      ],
+      "unavailable": [],
+      "representativeName": "반야천성"
+    },
+    {
+      "id": "guild-11",
+      "name": "헤헤",
+      "color": "#a8d8b9",
+      "active": true,
+      "characters": [
+        {
+          "id": "guild-11-1",
+          "name": "헤헤D",
+          "role": "딜러",
+          "className": "소서리스",
+          "earnsGold": true,
+          "itemLevel": 1778.33
+        },
+        {
+          "id": "guild-11-2",
+          "name": "여름엔치맥",
+          "role": "딜러",
+          "className": "소울이터",
+          "earnsGold": true,
+          "itemLevel": 1770
+        },
+        {
+          "id": "guild-11-3",
+          "name": "헤헤x",
+          "role": "딜러",
+          "className": "배틀마스터",
+          "earnsGold": true,
+          "itemLevel": 1770
+        },
+        {
+          "id": "guild-11-4",
+          "name": "헤헤82",
+          "role": "서폿",
+          "className": "바드",
+          "earnsGold": true,
+          "itemLevel": 1770
+        },
+        {
+          "id": "guild-11-5",
+          "name": "기상청알파고",
+          "role": "딜러",
+          "className": "기상술사",
+          "earnsGold": true,
+          "itemLevel": 1750.83
+        },
+        {
+          "id": "guild-11-6",
+          "name": "헤헤님",
+          "role": "딜러",
+          "className": "발키리",
+          "earnsGold": true,
+          "itemLevel": 1750
+        }
+      ],
+      "unavailable": [],
+      "representativeName": "헤헤D"
+    },
+    {
+      "id": "guild-14",
+      "name": "뚜비",
+      "color": "#d9a9c7",
+      "active": true,
+      "characters": [
+        {
+          "id": "guild-14-1",
+          "name": "뚜비냥냥",
+          "role": "딜러",
+          "className": "인파이터",
+          "earnsGold": true,
+          "itemLevel": 1770.83
+        },
+        {
+          "id": "guild-14-2",
+          "name": "우유냥힐링",
+          "role": "서폿",
+          "className": "발키리",
+          "earnsGold": true,
+          "itemLevel": 1732.5
+        },
+        {
+          "id": "guild-14-3",
+          "name": "붓꾸라지",
+          "role": "서폿",
+          "className": "도화가",
+          "earnsGold": true,
+          "itemLevel": 1730.83
+        },
+        {
+          "id": "guild-14-4",
+          "name": "차원우유냥",
+          "role": "딜러",
+          "className": "차원술사",
+          "earnsGold": true,
+          "itemLevel": 1730
+        },
+        {
+          "id": "guild-14-5",
+          "name": "뚜비네우유",
+          "role": "딜러",
+          "className": "창술사",
+          "earnsGold": true,
+          "itemLevel": 1680
+        },
+        {
+          "id": "guild-14-6",
+          "name": "우유는수다쟁이",
+          "role": "서폿",
+          "className": "바드",
+          "earnsGold": true,
+          "itemLevel": 1664.17
+        }
+      ],
+      "unavailable": [],
+      "representativeName": "뚜비냥냥"
+    },
+    {
+      "id": "guild-15",
+      "name": "꾸링이",
+      "color": "#a9d9d4",
+      "active": true,
+      "characters": [
+        {
+          "id": "카마인:꾸링이",
+          "name": "꾸링이",
+          "role": "딜러",
+          "className": "블레이드",
+          "earnsGold": true,
+          "itemLevel": 1770,
+          "serverName": "카마인"
+        },
+        {
+          "id": "카마인:푸르새우",
+          "name": "푸르새우",
+          "role": "딜러",
+          "className": "블레이드",
+          "earnsGold": true,
+          "itemLevel": 1720.17,
+          "serverName": "카마인"
+        },
+        {
+          "id": "카마인:푸르꾸링",
+          "name": "푸르꾸링",
+          "role": "딜러",
+          "className": "블레이드",
+          "earnsGold": true,
+          "itemLevel": 1716.67,
+          "serverName": "카마인"
+        }
+      ],
+      "unavailable": [],
+      "representativeName": "꾸링이"
+    },
+    {
+      "id": "guild-5",
+      "name": "스카치",
+      "color": "#9fc3ed",
+      "active": true,
+      "characters": [
+        {
+          "id": "guild-5-1",
+          "name": "스카치멜로우",
+          "role": "서폿",
+          "className": "바드",
+          "earnsGold": true,
+          "itemLevel": 1783.33
+        },
+        {
+          "id": "guild-5-2",
+          "name": "제주오설록",
+          "role": "딜러",
+          "className": "블레이드",
+          "earnsGold": true,
+          "itemLevel": 1770.83
+        },
+        {
+          "id": "guild-5-3",
+          "name": "제주소금빵",
+          "role": "서폿",
+          "className": "발키리",
+          "earnsGold": true,
+          "itemLevel": 1770
+        },
+        {
+          "id": "guild-5-4",
+          "name": "세화해변",
+          "role": "서폿",
+          "className": "도화가",
+          "earnsGold": true,
+          "itemLevel": 1770
+        },
+        {
+          "id": "guild-5-5",
+          "name": "멍멍제과당",
+          "role": "서폿",
+          "className": "홀리나이트",
+          "earnsGold": true,
+          "itemLevel": 1752.5
+        },
+        {
+          "id": "guild-5-6",
+          "name": "망고식스",
+          "role": "딜러",
+          "className": "소울이터",
+          "earnsGold": true,
+          "itemLevel": 1750.83
+        },
+        {
+          "id": "guild-5-extra-1",
+          "name": "테네오",
+          "role": "딜러",
+          "className": "차원술사",
+          "earnsGold": false,
+          "itemLevel": 1735
+        }
+      ],
+      "unavailable": [],
+      "representativeName": "스카치멜로우"
+    },
+    {
+      "id": "guild-4",
+      "name": "모카",
+      "color": "#f1c09f",
+      "active": true,
+      "characters": [
+        {
+          "id": "카마인:모카요거트",
+          "name": "모카요거트",
+          "role": "서폿",
+          "className": "바드",
+          "earnsGold": true,
+          "itemLevel": 1784.17,
+          "serverName": "카마인"
+        },
+        {
+          "id": "카마인:모카민트초코",
+          "name": "모카민트초코",
+          "role": "서폿",
+          "className": "바드",
+          "earnsGold": true,
+          "itemLevel": 1753.33,
+          "serverName": "카마인"
+        },
+        {
+          "id": "카마인:카페모카휘핑빼고",
+          "name": "카페모카휘핑빼고",
+          "role": "서폿",
+          "className": "도화가",
+          "earnsGold": true,
+          "itemLevel": 1740.83,
+          "serverName": "카마인"
+        },
+        {
+          "id": "카마인:모카민트쉐이크",
+          "name": "모카민트쉐이크",
+          "role": "서폿",
+          "className": "바드",
+          "earnsGold": true,
+          "itemLevel": 1738.33,
+          "serverName": "카마인"
+        },
+        {
+          "id": "카마인:모카민트스무디",
+          "name": "모카민트스무디",
+          "role": "서폿",
+          "className": "바드",
+          "earnsGold": true,
+          "itemLevel": 1700,
+          "serverName": "카마인"
+        }
+      ],
+      "unavailable": [],
+      "representativeName": "모카요거트"
+    },
+    {
+      "id": "guild-13",
+      "name": "저받인파",
+      "color": "#b7c9f2",
+      "active": true,
+      "characters": [
+        {
+          "id": "카마인:저받인파",
+          "name": "저받인파",
+          "role": "딜러",
+          "className": "인파이터",
+          "earnsGold": true,
+          "itemLevel": 1775,
+          "serverName": "카마인"
+        },
+        {
+          "id": "카마인:당진야호",
+          "name": "당진야호",
+          "role": "딜러",
+          "className": "기공사",
+          "earnsGold": true,
+          "itemLevel": 1732.5,
+          "serverName": "카마인"
+        },
+        {
+          "id": "카마인:배라민트초코따인트",
+          "name": "배라민트초코따인트",
+          "role": "딜러",
+          "className": "차원술사",
+          "earnsGold": true,
+          "itemLevel": 1710.83,
+          "serverName": "카마인"
+        }
+      ],
+      "unavailable": [],
+      "representativeName": "저받인파"
+    },
+    {
+      "id": "guild-3",
+      "name": "자쿠",
+      "color": "#edaedf",
+      "active": true,
+      "characters": [
+        {
+          "id": "카마인:뎀쿠",
+          "name": "뎀쿠",
+          "role": "딜러",
+          "className": "데모닉",
+          "earnsGold": true,
+          "itemLevel": 1788.33,
+          "serverName": "카마인"
+        },
+        {
+          "id": "카마인:커세어보다발키리",
+          "name": "커세어보다발키리",
+          "role": "서폿",
+          "className": "발키리",
+          "earnsGold": true,
+          "itemLevel": 1770,
+          "serverName": "카마인"
+        },
+        {
+          "id": "카마인:우산자쿠",
+          "name": "우산자쿠",
+          "role": "딜러",
+          "className": "기상술사",
+          "earnsGold": true,
+          "itemLevel": 1770,
+          "serverName": "카마인"
+        },
+        {
+          "id": "카마인:버블맛집",
+          "name": "버블맛집",
+          "role": "서폿",
+          "className": "바드",
+          "earnsGold": true,
+          "itemLevel": 1770,
+          "serverName": "카마인"
+        },
+        {
+          "id": "카마인:워붕이자쿠",
+          "name": "워붕이자쿠",
+          "role": "딜러",
+          "className": "워로드",
+          "earnsGold": true,
+          "itemLevel": 1756.67,
+          "serverName": "카마인"
+        },
+        {
+          "id": "카마인:농부의길",
+          "name": "농부의길",
+          "role": "딜러",
+          "className": "환수사",
+          "earnsGold": true,
+          "itemLevel": 1754.17,
+          "serverName": "카마인"
+        },
+        {
+          "id": "카마인:블레이드자쿠",
+          "name": "블레이드자쿠",
+          "role": "딜러",
+          "className": "블레이드",
+          "earnsGold": false,
+          "itemLevel": 1754.17,
+          "serverName": "카마인"
+        }
+      ],
+      "unavailable": [],
+      "representativeName": "뎀쿠"
+    },
+    {
+      "id": "guild-7",
+      "name": "아쀼님",
+      "color": "#d7d7d7",
+      "active": true,
+      "characters": [
+        {
+          "id": "guild-7-1",
+          "name": "아쀼님",
+          "role": "딜러",
+          "className": "서머너",
+          "earnsGold": true,
+          "itemLevel": 1782.5
+        },
+        {
+          "id": "guild-7-2",
+          "name": "우비냥아리",
+          "role": "딜러",
+          "className": "기상술사",
+          "earnsGold": true,
+          "itemLevel": 1772.5
+        },
+        {
+          "id": "guild-7-3",
+          "name": "아쀼닝",
+          "role": "딜러",
+          "className": "서머너",
+          "earnsGold": true,
+          "itemLevel": 1770
+        },
+        {
+          "id": "guild-7-4",
+          "name": "아리는애옹",
+          "role": "딜러",
+          "className": "환수사",
+          "earnsGold": true,
+          "itemLevel": 1755.83
+        },
+        {
+          "id": "guild-7-5",
+          "name": "아리는빵야",
+          "role": "딜러",
+          "className": "발키리",
+          "earnsGold": true,
+          "itemLevel": 1755
+        },
+        {
+          "id": "guild-7-6",
+          "name": "아리도련님",
+          "role": "딜러",
+          "className": "차원술사",
+          "earnsGold": true,
+          "itemLevel": 1740
+        }
+      ],
+      "unavailable": [],
+      "representativeName": "아쀼님"
+    },
+    {
+      "id": "guild-6",
+      "name": "범이",
+      "color": "#87e4e1",
+      "active": true,
+      "characters": [
+        {
+          "id": "guild-6-1",
+          "name": "배라민트초코파인트",
+          "role": "딜러",
+          "className": "배틀마스터",
+          "earnsGold": true,
+          "itemLevel": 1783.33
+        },
+        {
+          "id": "guild-6-2",
+          "name": "안녕나여범이",
+          "role": "딜러",
+          "className": "환수사",
+          "earnsGold": true,
+          "itemLevel": 1770.83
+        },
+        {
+          "id": "guild-6-3",
+          "name": "안녕나용범이",
+          "role": "딜러",
+          "className": "가디언나이트",
+          "earnsGold": true,
+          "itemLevel": 1753.33
+        },
+        {
+          "id": "guild-6-4",
+          "name": "안녕나유범이",
+          "role": "딜러",
+          "className": "발키리",
+          "earnsGold": true,
+          "itemLevel": 1740
+        },
+        {
+          "id": "guild-6-5",
+          "name": "안녕나도범이",
+          "role": "딜러",
+          "className": "기공사",
+          "earnsGold": true,
+          "itemLevel": 1738.33
+        },
+        {
+          "id": "guild-6-6",
+          "name": "안녕나요범이",
+          "role": "딜러",
+          "className": "차원술사",
+          "earnsGold": true,
+          "itemLevel": 1726.67
+        }
+      ],
+      "unavailable": [],
+      "representativeName": "배라민트초코파인트"
+    },
+    {
+      "id": "guild-1",
+      "name": "지존명수치킨",
+      "color": "#ffd131",
+      "active": false,
+      "characters": [
+        {
+          "id": "guild-1-1",
+          "name": "지존명수치킨",
+          "role": "딜러",
+          "className": "환수사",
+          "earnsGold": true,
+          "itemLevel": 1800
+        },
+        {
+          "id": "guild-1-2",
+          "name": "별님반구미호",
+          "role": "딜러",
+          "className": "환수사",
+          "earnsGold": true,
+          "itemLevel": 1770
+        },
+        {
+          "id": "guild-1-3",
+          "name": "지존경규치킨",
+          "role": "서폿",
+          "className": "도화가",
+          "earnsGold": true,
+          "itemLevel": 1770
+        },
+        {
+          "id": "guild-1-4",
+          "name": "메롱하면던짐",
+          "role": "서폿",
+          "className": "도화가",
+          "earnsGold": true,
+          "itemLevel": 1757.5
+        },
+        {
+          "id": "guild-1-5",
+          "name": "트리움푸스",
+          "role": "딜러",
+          "className": "블레이드",
+          "earnsGold": true,
+          "itemLevel": 1756.67
+        },
+        {
+          "id": "guild-1-6",
+          "name": "에롱시티",
+          "role": "딜러",
+          "className": "건슬링어",
+          "earnsGold": true,
+          "itemLevel": 1750.83
+        }
+      ],
+      "unavailable": [],
+      "representativeName": "지존명수치킨"
+    },
+    {
+      "id": "guild-16",
+      "name": "뮤버",
+      "color": "#c8b58d",
+      "active": false,
+      "characters": [
+        {
+          "id": "guild-16-1",
+          "name": "MUVER",
+          "role": "서폿",
+          "className": "바드",
+          "earnsGold": true,
+          "itemLevel": 1771.67
+        },
+        {
+          "id": "guild-16-2",
+          "name": "믿음주는바드",
+          "role": "서폿",
+          "className": "바드",
+          "earnsGold": true,
+          "itemLevel": 1750
+        },
+        {
+          "id": "guild-16-3",
+          "name": "놀아주는바드",
+          "role": "서폿",
+          "className": "바드",
+          "earnsGold": true,
+          "itemLevel": 1736.67
+        },
+        {
+          "id": "guild-16-4",
+          "name": "뮤라이나",
+          "role": "서폿",
+          "className": "바드",
+          "earnsGold": true,
+          "itemLevel": 1730.83
+        },
+        {
+          "id": "guild-16-5",
+          "name": "MUVBR",
+          "role": "서폿",
+          "className": "홀리나이트",
+          "earnsGold": true,
+          "itemLevel": 1730.83
+        },
+        {
+          "id": "guild-16-6",
+          "name": "뮤라리스",
+          "role": "딜러",
+          "className": "소서리스",
+          "earnsGold": true,
+          "itemLevel": 1722.67
+        }
+      ],
+      "unavailable": [],
+      "representativeName": "MUVER"
+    },
+    {
+      "id": "guild-12",
+      "name": "무펙",
+      "color": "#f6d58f",
+      "active": false,
+      "characters": [
+        {
+          "id": "guild-12-1",
+          "name": "차원점검중",
+          "role": "딜러",
+          "className": "차원술사",
+          "earnsGold": true,
+          "itemLevel": 1783.33
+        },
+        {
+          "id": "guild-12-2",
+          "name": "무펙",
+          "role": "딜러",
+          "className": "디스트로이어",
+          "earnsGold": true,
+          "itemLevel": 1750
+        },
+        {
+          "id": "guild-12-3",
+          "name": "투펙",
+          "role": "딜러",
+          "className": "브레이커",
+          "earnsGold": true,
+          "itemLevel": 1739.17
+        },
+        {
+          "id": "guild-12-4",
+          "name": "걍펙",
+          "role": "딜러",
+          "className": "가디언나이트",
+          "earnsGold": true,
+          "itemLevel": 1730
+        },
+        {
+          "id": "guild-12-5",
+          "name": "환수사버프좀",
+          "role": "딜러",
+          "className": "환수사",
+          "earnsGold": true,
+          "itemLevel": 1713.33
+        },
+        {
+          "id": "guild-12-6",
+          "name": "방펙",
+          "role": "딜러",
+          "className": "워로드",
+          "earnsGold": true,
+          "itemLevel": 1703.5
+        }
+      ],
+      "unavailable": [],
+      "representativeName": "차원점검중"
+    },
+    {
+      "id": "guild-2",
+      "name": "서던",
+      "color": "#94d451",
+      "active": false,
+      "characters": [
+        {
+          "id": "guild-2-1",
+          "name": "서던",
+          "role": "딜러",
+          "className": "브레이커",
+          "earnsGold": true,
+          "itemLevel": 1792.5
+        },
+        {
+          "id": "guild-2-2",
+          "name": "최진탁",
+          "role": "딜러",
+          "className": "데빌헌터",
+          "earnsGold": true,
+          "itemLevel": 1759.17
+        },
+        {
+          "id": "guild-2-3",
+          "name": "서던용",
+          "role": "딜러",
+          "className": "가디언나이트",
+          "earnsGold": true,
+          "itemLevel": 1733.33
+        },
+        {
+          "id": "guild-2-4",
+          "name": "탕서던",
+          "role": "딜러",
+          "className": "건슬링어",
+          "earnsGold": true,
+          "itemLevel": 1668.67
+        },
+        {
+          "id": "guild-2-5",
+          "name": "난누워있어",
+          "role": "딜러",
+          "className": "브레이커",
+          "earnsGold": true,
+          "itemLevel": 1655.33
+        },
+        {
+          "id": "guild-2-6",
+          "name": "서던증명15",
+          "role": "딜러",
+          "className": "데빌헌터",
+          "earnsGold": true,
+          "itemLevel": 1640
+        }
+      ],
+      "unavailable": [],
+      "representativeName": "서던"
+    }
+  ],
+  "catalog": [
+    {
+      "id": "fourth-act-normal",
+      "gold": 27000,
+      "name": "4막",
+      "size": 8,
+      "color": "gray",
+      "hexColor": "#c4abab",
+      "minLevel": 1700,
+      "difficulty": "노말"
+    },
+    {
+      "id": "fourth-act-hard",
+      "gold": 38000,
+      "name": "4막",
+      "size": 8,
+      "color": "gray",
+      "hexColor": "#c9b0b0",
+      "minLevel": 1720,
+      "difficulty": "하드"
+    },
+    {
+      "id": "jongmak-normal",
+      "gold": 32000,
+      "name": "종막",
+      "size": 8,
+      "color": "gray",
+      "hexColor": "#aaaaaa",
+      "minLevel": 1710,
+      "difficulty": "노말"
+    },
+    {
+      "id": "jongmak-hard",
+      "gold": 48000,
+      "name": "종막",
+      "size": 8,
+      "color": "gray",
+      "hexColor": "#aaaaaa",
+      "minLevel": 1730,
+      "difficulty": "하드"
+    },
+    {
+      "id": "serka-normal",
+      "gold": 32000,
+      "name": "세르카",
+      "size": 4,
+      "color": "blue",
+      "hexColor": "#0f9dd2",
+      "minLevel": 1710,
+      "difficulty": "노말"
+    },
+    {
+      "id": "serka-hard",
+      "gold": 44000,
+      "name": "세르카",
+      "size": 4,
+      "color": "blue",
+      "hexColor": "#0f9dd2",
+      "minLevel": 1730,
+      "difficulty": "하드"
+    },
+    {
+      "id": "serka-nightmare",
+      "gold": 54000,
+      "name": "세르카",
+      "size": 4,
+      "color": "blue",
+      "hexColor": "#0f9dd2",
+      "minLevel": 1740,
+      "difficulty": "나메"
+    },
+    {
+      "id": "sungsimdang-1",
+      "gold": 30000,
+      "name": "성심당",
+      "size": 4,
+      "color": "yellow",
+      "hexColor": "#f4d576",
+      "minLevel": 1700,
+      "difficulty": "1단계"
+    },
+    {
+      "id": "sungsimdang-3",
+      "gold": 50000,
+      "name": "성심당",
+      "size": 4,
+      "color": "gold",
+      "hexColor": "#c49b00",
+      "minLevel": 1750,
+      "difficulty": "3단계"
+    },
+    {
+      "id": "sungsimdang-2",
+      "gold": 40000,
+      "name": "성심당",
+      "size": 4,
+      "color": "yellow",
+      "hexColor": "#f4d576",
+      "minLevel": 1720,
+      "difficulty": "2단계"
+    },
+    {
+      "id": "belgarden-hard",
+      "gold": 62000,
+      "name": "벨가르딘",
+      "size": 8,
+      "color": "purple",
+      "hexColor": "#85619e",
+      "minLevel": 1770,
+      "difficulty": "하드"
+    },
+    {
+      "id": "belgarden-normal",
+      "gold": 50000,
+      "name": "벨가르딘",
+      "size": 8,
+      "color": "purple",
+      "hexColor": "#85619e",
+      "minLevel": 1750,
+      "difficulty": "노말"
+    },
+    {
+      "id": "belgarden-nightmare",
+      "gold": 75000,
+      "name": "벨가르딘",
+      "size": 8,
+      "color": "purple",
+      "hexColor": "#85619e",
+      "minLevel": 1780,
+      "difficulty": "나메"
+    }
+  ],
+  "schedule": {
+    "weeks": {
+      "2026-08-12": {
+        "raids": {
+          "fri": [
+            {
+              "id": 301,
+              "order": 0,
+              "catalogId": "belgarden-hard",
+              "startTime": "20:30",
+              "characterIds": [
+                "guild-5-1",
+                "guild-6-2",
+                "guild-8-1",
+                "카마인:뎀쿠",
+                "카마인:카페모카휘핑빼고",
+                "guild-11-3",
+                "guild-7-5",
+                "guild-10-1"
+              ]
+            },
+            {
+              "id": 302,
+              "order": 1,
+              "catalogId": "serka-nightmare",
+              "startTime": "20:30",
+              "characterIds": [
+                "guild-7-2",
+                "카마인:우산자쿠",
+                "guild-11-1",
+                "guild-8-3"
+              ]
+            }
+          ],
+          "mon": [
+            {
+              "id": 601,
+              "order": 0,
+              "catalogId": "belgarden-hard",
+              "startTime": "20:30",
+              "characterIds": [
+                "카마인:워붕이자쿠",
+                "guild-7-5",
+                "guild-11-3",
+                "guild-5-4",
+                "카마인:모카민트초코",
+                "guild-8-1",
+                "guild-6-2",
+                "guild-10-1"
+              ]
+            },
+            {
+              "id": 602,
+              "order": 1,
+              "catalogId": "serka-nightmare",
+              "startTime": "20:30",
+              "characterIds": [
+                "guild-5-2",
+                "guild-7-5",
+                "카마인:우산자쿠",
+                "guild-11-1"
+              ]
+            }
+          ],
+          "sat": [
+            {
+              "id": 401,
+              "order": 0,
+              "catalogId": "belgarden-hard",
+              "startTime": "20:30",
+              "characterIds": [
+                "guild-5-1",
+                "guild-7-5",
+                "guild-8-1",
+                "카마인:뎀쿠",
+                "카마인:모카민트초코",
+                "guild-6-2",
+                "guild-11-3",
+                "guild-10-1"
+              ]
+            },
+            {
+              "id": 402,
+              "order": 1,
+              "catalogId": "sungsimdang-2",
+              "startTime": "20:30",
+              "characterIds": [
+                "카마인:카페모카휘핑빼고",
+                "guild-6-1",
+                "guild-5-4",
+                "guild-7-1"
+              ]
+            }
+          ],
+          "sun": [
+            {
+              "id": 501,
+              "order": 0,
+              "catalogId": "belgarden-normal",
+              "startTime": "20:30",
+              "characterIds": [
+                "guild-5-2",
+                "카마인:커세어보다발키리",
+                "guild-8-1",
+                "guild-11-3",
+                "카마인:모카민트초코",
+                "guild-7-5",
+                "guild-6-2",
+                "guild-10-1"
+              ]
+            },
+            {
+              "id": 502,
+              "order": 1,
+              "catalogId": "serka-nightmare",
+              "startTime": "20:30",
+              "characterIds": [
+                "guild-7-2",
+                "guild-11-1",
+                "guild-5-3",
+                "guild-10-2"
+              ]
+            }
+          ],
+          "thu": [
+            {
+              "id": 201,
+              "order": 0,
+              "catalogId": "belgarden-normal",
+              "startTime": "20:30",
+              "characterIds": [
+                "guild-5-1",
+                "guild-7-5",
+                "guild-8-1",
+                "카마인:뎀쿠",
+                "카마인:모카민트초코",
+                "guild-11-1",
+                "guild-6-1",
+                "guild-10-1"
+              ]
+            },
+            {
+              "id": 202,
+              "order": 1,
+              "catalogId": "serka-hard",
+              "startTime": "20:30",
+              "characterIds": [
+                "guild-11-2",
+                "guild-5-3",
+                "guild-7-1",
+                "guild-8-4"
+              ]
+            },
+            {
+              "id": 203,
+              "order": 2,
+              "catalogId": "sungsimdang-3",
+              "startTime": "20:30",
+              "characterIds": [
+                "guild-5-2",
+                "guild-11-3",
+                "guild-7-5",
+                "guild-8-3"
+              ]
+            }
+          ],
+          "tue": [
+            {
+              "id": 701,
+              "order": 0,
+              "catalogId": "serka-hard",
+              "startTime": "20:30",
+              "characterIds": [
+                "guild-11-2",
+                "카마인:우산자쿠",
+                "카마인:모카민트쉐이크",
+                "guild-8-4"
+              ]
+            },
+            {
+              "id": 702,
+              "order": 1,
+              "catalogId": "sungsimdang-3",
+              "startTime": "20:30",
+              "characterIds": [
+                "guild-7-2",
+                "카마인:우산자쿠",
+                "guild-10-1",
+                "guild-8-3"
+              ]
+            }
+          ],
+          "wed": [
+            {
+              "id": 101,
+              "order": 0,
+              "catalogId": "jongmak-hard",
+              "startTime": "20:30",
+              "characterIds": [
+                "카마인:모카민트초코",
+                "카마인:뎀쿠",
+                "guild-8-1",
+                "guild-6-1",
+                "guild-5-1",
+                "guild-7-1",
+                "guild-10-1",
+                "guild-11-1"
+              ]
+            },
+            {
+              "id": 102,
+              "order": 1,
+              "catalogId": "serka-nightmare",
+              "startTime": "20:30",
+              "characterIds": [
+                "guild-5-2",
+                "카마인:우산자쿠",
+                "guild-7-5",
+                "guild-8-3"
+              ]
+            },
+            {
+              "id": 103,
+              "order": 2,
+              "catalogId": "sungsimdang-3",
+              "startTime": "20:30",
+              "characterIds": [
+                "카마인:카페모카휘핑빼고",
+                "guild-11-3",
+                "guild-6-2",
+                "guild-10-2"
+              ]
+            }
+          ],
+          "mobile": []
+        },
+        "unavailableByMember": {}
+      }
+    },
+    "version": 2
+  },
+  "updated_at": "2026-08-10T08:32:43.436+00:00",
+  "recovery": {
+    "mappings": [
+      {
+        "oldId": "a1",
+        "newId": "guild-7-1"
+      },
+      {
+        "oldId": "a2",
+        "newId": "guild-7-2"
+      },
+      {
+        "oldId": "a5",
+        "newId": "guild-7-5"
+      },
+      {
+        "oldId": "b1",
+        "newId": "guild-10-1"
+      },
+      {
+        "oldId": "b2",
+        "newId": "guild-10-2"
+      },
+      {
+        "oldId": "h1",
+        "newId": "guild-11-1"
+      },
+      {
+        "oldId": "h2",
+        "newId": "guild-11-2"
+      },
+      {
+        "oldId": "h3",
+        "newId": "guild-11-3"
+      },
+      {
+        "oldId": "j1",
+        "newId": "카마인:뎀쿠"
+      },
+      {
+        "oldId": "j2",
+        "newId": "카마인:커세어보다발키리"
+      },
+      {
+        "oldId": "j3",
+        "newId": "카마인:우산자쿠"
+      },
+      {
+        "oldId": "j5",
+        "newId": "카마인:워붕이자쿠"
+      },
+      {
+        "oldId": "k1",
+        "newId": "guild-8-1"
+      },
+      {
+        "oldId": "k3",
+        "newId": "guild-8-3"
+      },
+      {
+        "oldId": "k4",
+        "newId": "guild-8-4"
+      },
+      {
+        "oldId": "m2",
+        "newId": "카마인:모카민트초코"
+      },
+      {
+        "oldId": "m3",
+        "newId": "카마인:카페모카휘핑빼고"
+      },
+      {
+        "oldId": "m4",
+        "newId": "카마인:모카민트쉐이크"
+      },
+      {
+        "oldId": "n1",
+        "newId": "guild-6-1"
+      },
+      {
+        "oldId": "n2",
+        "newId": "guild-6-2"
+      },
+      {
+        "oldId": "s1",
+        "newId": "guild-5-1"
+      },
+      {
+        "oldId": "s2",
+        "newId": "guild-5-2"
+      },
+      {
+        "oldId": "s3",
+        "newId": "guild-5-3"
+      },
+      {
+        "oldId": "s4",
+        "newId": "guild-5-4"
+      }
+    ],
+    "unresolved": [],
+    "stillMissing": []
+  }
+}
