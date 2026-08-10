@@ -19,3 +19,5 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - Member fixed unavailable weekdays remain editable and produce schedule warnings; warnings do not block assignment.
 - Members, raid catalog entries, and the weekly schedule are shared through the Supabase `raid_board_state` record; the selected personal member and character filters remain browser-local.
 - Member colors and raid header colors are editable, persisted, and reused consistently across management and schedule views.
+- Use `serverName:characterName` as the canonical character key in member rosters and schedule slots. Manual roster refreshes must preserve assignments and character-specific settings by matching this key instead of generating replacement IDs.
+- Recover the existing legacy schedule once by mapping each old prefix-and-number ID to the corresponding member and current roster position; keep the pre-recovery Supabase snapshot as a rollback backup.
