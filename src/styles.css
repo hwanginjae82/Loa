@@ -269,3 +269,29 @@ button { cursor: pointer; }
   .rule-head span:nth-child(4), .raid-rule-list article > b:nth-of-type(3) { display: none; }
   .delete-catalog-raid { width: 68px; }
 }
+
+@media (max-width: 430px) {
+  .week-toolbar { display: grid; grid-template-columns: 1fr; gap: 8px; overflow: visible; padding: 0; white-space: normal; }
+  .week-label { grid-row: 1; min-width: 0; text-align: center; }
+  .week-label span { font-size: 10px; }
+  .week-label strong { font-size: 18px; }
+  .week-navigation { grid-row: 2; justify-content: center; }
+  .week-navigation button { min-width: 58px; }
+  .week-toolbar .week-actions { grid-row: 3; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 0; }
+  .week-toolbar button { padding: 8px 7px; font-size: 10px; white-space: nowrap; }
+}
+
+/* Lightweight class icons are shown only in character-focused views. */
+.class-icon { width: 28px; height: 28px; flex: 0 0 auto; object-fit: contain; opacity: .82; }
+.class-icon.small { width: 20px; height: 20px; }
+.class-icon.role { width: 16px; height: 16px; opacity: .72; }
+.role-labels span { display: flex; align-items: center; justify-content: center; gap: 4px; }
+.character-identity { display: flex; align-items: center; gap: 8px; }
+.character-identity > div { min-width: 0; }
+.roster-picker > section > div:last-child button { grid-template-columns: 30px 1fr auto; column-gap: 7px; }
+.roster-picker button .class-icon { grid-column: 1; grid-row: 1 / span 2; align-self: center; width: 28px; height: 28px; }
+.roster-picker button strong, .roster-picker button small { grid-column: 2; }
+.roster-picker button b { grid-column: 3; }
+.personal-character-name, .personal-progress-character { display: flex !important; align-items: center; gap: 5px; }
+.personal-character-name strong { padding-right: 24px; }
+.personal-progress-character .class-icon { margin-right: 2px; }
