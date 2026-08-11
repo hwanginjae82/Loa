@@ -39,6 +39,7 @@ const getWeekDays = (weekStart) => {
   }), { key: "mobile", label: "모", full: "모바출", date: "날짜 조율" }];
 };
 const emptyRaidDays = () => Object.fromEntries(scheduleDayKeys.map((key) => [key, []]));
+const emptyScheduleData = () => ({ version: 2, weeks: {} });
 const normalizeRaidDays = (raids = {}) => Object.fromEntries(scheduleDayKeys.map((key) => {
   const normalized = (Array.isArray(raids[key]) ? raids[key] : []).map((instance) => ({
     ...instance,
@@ -94,73 +95,16 @@ const normalizeMembers = (members) => {
   }));
 };
 const normalizeCatalog = (catalog) => {
-  const incoming = Array.isArray(catalog) ? catalog : initialCatalog;
+  const incoming = Array.isArray(catalog) ? catalog : [];
   return sortRaidCatalog(incoming.map((raid) => ({ ...raid, hexColor: getRaidColor(raid) })));
 };
 const normalizeScheduleData = (schedule, members) => {
+  if (!schedule || typeof schedule !== "object") return emptyScheduleData();
   if (schedule?.version === 2 && schedule.weeks) {
     return { ...schedule, weeks: Object.fromEntries(Object.entries(schedule.weeks).map(([weekStart, week]) => [weekStart, { raids: reconnectScheduleCharacters(week.raids, members), unavailableByMember: week.unavailableByMember ?? {} }])) };
   }
   return { version: 2, weeks: { [initialWeekStart]: { raids: reconnectScheduleCharacters(schedule, members), unavailableByMember: Object.fromEntries(members.filter((member) => member.unavailable?.length).map((member) => [String(member.id), member.unavailable])) } } };
 };
-const char = (id, name, className, role, itemLevel) => ({ id, name, className, role, itemLevel });
-
-const initialMembers = [
-  { id: 1, name: "스카치", unavailable: ["fri"], characters: [
-    char("s1", "스카치홀리", "홀리나이트", "서폿", 1760), char("s2", "스카치도화가", "도화가", "서폿", 1755),
-    char("s3", "스카치차원", "소서리스", "딜러", 1745), char("s4", "스카치망식", "브레이커", "딜러", 1770),
-    char("s5", "스카치블래", "블래스터", "딜러", 1740), char("s6", "스카치검객", "슬레이어", "딜러", 1750),
-  ]},
-  { id: 2, name: "저쿠", unavailable: ["thu"], characters: [
-    char("j1", "저쿠환수사", "환수사", "딜러", 1762), char("j2", "저쿠블래", "블래스터", "딜러", 1752),
-    char("j3", "저쿠유붕", "기공사", "딜러", 1750), char("j4", "저쿠우산", "기상술사", "딜러", 1745),
-    char("j5", "저쿠발키리", "발키리", "서폿", 1740), char("j6", "저쿠소서", "소서리스", "딜러", 1735),
-  ]},
-  { id: 3, name: "아푸님", unavailable: ["wed", "sun"], characters: [
-    char("a1", "아리드뭉아", "데모닉", "딜러", 1742), char("a2", "아리드예용", "바드", "서폿", 1760),
-    char("a3", "아리드로님", "홀리나이트", "서폿", 1750), char("a4", "아리드바드", "바드", "서폿", 1740),
-    char("a5", "아리드소울", "소울이터", "딜러", 1755), char("a6", "아푸님", "도화가", "서폿", 1735),
-  ]},
-  { id: 4, name: "김밥", unavailable: [], characters: [
-    char("k1", "김밥붕기사", "기공사", "딜러", 1770), char("k2", "김밥홀리", "홀리나이트", "서폿", 1760),
-    char("k3", "김밥블래", "블래스터", "딜러", 1755), char("k4", "김밥딜러", "버서커", "딜러", 1740),
-    char("k5", "김밥든", "디스트로이어", "딜러", 1735), char("k6", "김밥버커", "버서커", "딜러", 1750),
-  ]},
-  { id: 5, name: "모민축", unavailable: ["sat"], characters: [
-    char("m1", "모민축", "홀리나이트", "서폿", 1745), char("m2", "모카도화가", "도화가", "서폿", 1755),
-    char("m3", "모카요거트", "바드", "서폿", 1750), char("m4", "모카소울", "소울이터", "딜러", 1735),
-  ]},
-  { id: 6, name: "해해", unavailable: ["mon"], characters: [
-    char("h1", "해해소울", "소울이터", "딜러", 1751), char("h2", "해해발키리", "발키리", "서폿", 1745),
-    char("h3", "해해기상", "기상술사", "딜러", 1755), char("h4", "해해베마", "배틀마스터", "딜러", 1735),
-  ]},
-  { id: 7, name: "안나범", unavailable: ["thu"], characters: [
-    char("n1", "안나범기공", "기공사", "딜러", 1748), char("n2", "안나범기상", "기상술사", "딜러", 1760),
-    char("n3", "안나범발키리", "발키리", "서폿", 1750), char("n4", "안나범환수사", "환수사", "딜러", 1740),
-  ]},
-  { id: 8, name: "반아", unavailable: ["tue"], characters: [
-    char("b1", "반아소울", "소울이터", "딜러", 1760), char("b2", "반아유산", "스카우터", "딜러", 1750),
-    char("b3", "반아대현", "데빌헌터", "딜러", 1745), char("b4", "반아블래", "블래스터", "딜러", 1740),
-  ]},
-];
-
-const initialCatalog = [
-  { id: "fourth-act-normal", name: "4막", difficulty: "노말", minLevel: 1700, gold: 27000, size: 8, color: "gray" },
-  { id: "fourth-act-hard", name: "4막", difficulty: "하드", minLevel: 1720, gold: 38000, size: 8, color: "gray" },
-  { id: "jongmak-normal", name: "종막", difficulty: "노말", minLevel: 1710, gold: 32000, size: 8, color: "gray" },
-  { id: "jongmak-hard", name: "종막", difficulty: "하드", minLevel: 1730, gold: 48000, size: 8, color: "gray" },
-  { id: "serka-normal", name: "세르카", difficulty: "노말", minLevel: 1710, gold: 32000, size: 4, color: "blue" },
-  { id: "serka-hard", name: "세르카", difficulty: "하드", minLevel: 1730, gold: 44000, size: 4, color: "blue" },
-  { id: "serka-nightmare", name: "세르카", difficulty: "나메", minLevel: 1740, gold: 54000, size: 4, color: "blue" },
-  { id: "sungsimdang-1", name: "성심당", difficulty: "1단계", minLevel: 1700, gold: 30000, size: 4, color: "yellow" },
-  { id: "sungsimdang-2", name: "성심당", difficulty: "2단계", minLevel: 1720, gold: 40000, size: 4, color: "yellow" },
-  { id: "sungsimdang-3", name: "성심당", difficulty: "3단계", minLevel: 1750, gold: 50000, size: 4, color: "gold" },
-  { id: "belgarden-normal", name: "벨가르딘", difficulty: "노말", minLevel: 1750, gold: 50000, size: 8, color: "purple" },
-  { id: "belgarden-hard", name: "벨가르딘", difficulty: "하드", minLevel: 1770, gold: 62000, size: 8, color: "purple" },
-  { id: "belgarden-nightmare", name: "벨가르딘", difficulty: "나메", minLevel: 1780, gold: 75000, size: 8, color: "purple" },
-];
-
-const initialSchedule = emptyRaidDays();
 
 const formatNumber = (value) => new Intl.NumberFormat("ko-KR").format(value);
 const formatCombatPower = (value) => formatNumber(Math.round(Number(value)));
@@ -763,19 +707,19 @@ export function App() {
   const [activeWeekStart, setActiveWeekStart] = useState(() => clampVisibleWeek(localStorage.getItem("loa-active-week-v1") ?? currentWeekStart));
   const [members, setMembers] = useState(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem("loa-raid-members-v2")) ?? initialGuildMembers;
+      const saved = JSON.parse(localStorage.getItem("loa-raid-members-v2")) ?? [];
       return normalizeMembers(saved);
-    } catch { return normalizeMembers(initialGuildMembers); }
+    } catch { return []; }
   });
   const [catalog, setCatalog] = useState(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem("loa-raid-catalog-v1")) ?? initialCatalog;
+      const saved = JSON.parse(localStorage.getItem("loa-raid-catalog-v1")) ?? [];
       return normalizeCatalog(saved);
-    } catch { return normalizeCatalog(initialCatalog); }
+    } catch { return []; }
   });
   const [scheduleData, setScheduleData] = useState(() => {
-    try { return normalizeScheduleData(JSON.parse(localStorage.getItem("loa-raid-schedule-v1")) ?? initialSchedule, members); }
-    catch { return normalizeScheduleData(initialSchedule, members); }
+    try { return normalizeScheduleData(JSON.parse(localStorage.getItem("loa-raid-schedule-v1")), members); }
+    catch { return emptyScheduleData(); }
   });
   const [isDirty, setIsDirty] = useState(false);
   const [cloudStatus, setCloudStatus] = useState(supabase ? "connecting" : "offline");
@@ -793,11 +737,11 @@ export function App() {
     let cancelled = false;
     let channel;
     const applyCloudState = (row) => {
-      const loadedMembers = normalizeMembers(row.members ?? initialGuildMembers);
+      const loadedMembers = normalizeMembers(row.members ?? []);
       const nextState = {
         members: loadedMembers,
-        catalog: normalizeCatalog(row.catalog ?? initialCatalog),
-        schedule: normalizeScheduleData(row.schedule ?? initialSchedule, loadedMembers),
+        catalog: normalizeCatalog(row.catalog),
+        schedule: normalizeScheduleData(row.schedule, loadedMembers),
       };
       lastSyncedRef.current = {
         members: JSON.stringify(nextState.members),
@@ -821,24 +765,12 @@ export function App() {
         setCloudMessage(error.code === "PGRST205" ? "Supabase에서 초기 설정 SQL을 실행해주세요." : error.message);
         return;
       }
-      if (data) {
-        applyCloudState(data);
-      } else {
-        const initialState = { members, catalog, schedule: scheduleData };
-        const { error: createError } = await supabase.from("raid_board_state").upsert({ id: "guild-main", ...initialState, updated_at: new Date().toISOString() });
-        if (cancelled) return;
-        if (createError) {
-          setCloudStatus("error");
-          setCloudMessage(createError.message);
-          return;
-        }
-        lastSyncedRef.current = {
-          members: JSON.stringify(initialState.members),
-          catalog: JSON.stringify(initialState.catalog),
-          schedule: JSON.stringify(initialState.schedule),
-        };
-        setCloudLoaded(true);
+      if (!data) {
+        setCloudStatus("error");
+        setCloudMessage("공용 DB 데이터가 없습니다. 관리자에게 문의해주세요.");
+        return;
       }
+      applyCloudState(data);
       cloudReadyRef.current = true;
       setCloudStatus("connected");
       setCloudMessage("");
