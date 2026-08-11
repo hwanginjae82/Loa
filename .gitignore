@@ -3,3 +3,8 @@ node_modules/
 dist/
 .env.local
 .env.*.local
+
+# 로컬 UI 확인용 캡처는 소스와 배포에 포함하지 않습니다.
+/implementation-*.png
+/qa-comparison*.png
+/audit/site-regression-*/

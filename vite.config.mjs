@@ -58,6 +58,23 @@ function lostArkRosterApi(token) {
           response.end(JSON.stringify({ message: `로스트아크 API 연결 오류: ${error.message}` }));
         }
       });
+      server.middlewares.use("/api/lostark/profile", async (request, response) => {
+        response.setHeader("Content-Type", "application/json; charset=utf-8");
+        const characterName = new URL(request.url, "http://localhost").searchParams.get("characterName")?.trim();
+        if (!characterName) { response.statusCode = 400; response.end(JSON.stringify({ message: "캐릭터명을 입력해주세요." })); return; }
+        if (!token) { response.statusCode = 503; response.end(JSON.stringify({ message: "LOSTARK_API_JWT가 설정되지 않았습니다." })); return; }
+        try {
+          const authorization = token.toLowerCase().startsWith("bearer ") ? token : `bearer ${token}`;
+          const apiResponse = await fetch(`https://developer-lostark.game.onstove.com/armories/characters/${encodeURIComponent(characterName)}/profiles`, { headers: { accept: "application/json", authorization } });
+          if (!apiResponse.ok) { response.statusCode = apiResponse.status; response.end(JSON.stringify({ message: `캐릭터 정보 조회 실패 (${apiResponse.status})` })); return; }
+          const profile = await apiResponse.json();
+          response.statusCode = 200;
+          response.end(JSON.stringify({ name: profile.CharacterName ?? characterName, itemLevel: parseItemLevel(profile.ItemAvgLevel), combatPower: parseItemLevel(profile.CombatPower) }));
+        } catch (error) {
+          response.statusCode = 502;
+          response.end(JSON.stringify({ message: `로스트아크 API 연결 오류: ${error.message}` }));
+        }
+      });
     },
   };
 }
