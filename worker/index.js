@@ -11,7 +11,7 @@ async function lostArkRoster(request, env) {
   if (!response.ok) return json({ message: `로스트아크 API 조회 실패 (${response.status})` }, response.status);
   const profiles = await response.json();
   const characters = profiles.map((profile) => ({
-    id: `${profile.ServerName}:${profile.CharacterName}`,
+    id: profile.CharacterName,
     name: profile.CharacterName,
     serverName: profile.ServerName,
     className: profile.CharacterClassName,
