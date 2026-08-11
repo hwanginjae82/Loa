@@ -160,38 +160,7 @@ const initialCatalog = [
   { id: "belgarden-nightmare", name: "벨가르딘", difficulty: "나메", minLevel: 1780, gold: 75000, size: 8, color: "purple" },
 ];
 
-const initialSchedule = {
-  wed: [
-    { id: 101, catalogId: "jongmak-hard", characterIds: ["m2", "j1", "k1", "n1", "s1", "a1", "b1", "h1"] },
-    { id: 102, catalogId: "serka-nightmare", characterIds: ["s2", "j3", "a5", "k3"] },
-    { id: 103, catalogId: "sungsimdang-3", characterIds: ["m3", "h3", "n2", "b2"] },
-  ],
-  thu: [
-    { id: 201, catalogId: "belgarden-normal", characterIds: ["s1", "a5", "k1", "j1", "m2", "h1", "n1", "b1"] },
-    { id: 202, catalogId: "serka-hard", characterIds: ["h2", "s3", "a1", "k4"] },
-    { id: 203, catalogId: "sungsimdang-3", characterIds: ["s2", "h3", "a5", "k3"] },
-  ],
-  fri: [
-    { id: 301, catalogId: "belgarden-hard", characterIds: ["s1", "n2", "k1", "j1", "m3", "h3", "a5", "b1"] },
-    { id: 302, catalogId: "serka-nightmare", characterIds: ["a2", "j3", "h1", "k3"] },
-  ],
-  sat: [
-    { id: 401, catalogId: "belgarden-hard", characterIds: ["s1", "a5", "k1", "j1", "m2", "n2", "h3", "b1"] },
-    { id: 402, catalogId: "sungsimdang-2", characterIds: ["m3", "n1", "s4", "a1"] },
-  ],
-  sun: [
-    { id: 501, catalogId: "belgarden-normal", characterIds: ["s2", "j2", "k1", "h3", "m2", "a5", "n2", "b1"] },
-    { id: 502, catalogId: "serka-nightmare", characterIds: ["a2", "h1", "s3", "b2"] },
-  ],
-  mon: [
-    { id: 601, catalogId: "belgarden-hard", characterIds: ["j5", "a5", "h3", "s4", "m2", "k1", "n2", "b1"] },
-    { id: 602, catalogId: "serka-nightmare", characterIds: ["s2", "a5", "j3", "h1"] },
-  ],
-  tue: [
-    { id: 701, catalogId: "serka-hard", characterIds: ["h2", "j3", "m4", "k4"] },
-    { id: 702, catalogId: "sungsimdang-3", characterIds: ["a2", "j3", "b1", "k3"] },
-  ],
-};
+const initialSchedule = emptyRaidDays();
 
 const formatNumber = (value) => new Intl.NumberFormat("ko-KR").format(value);
 const formatCombatPower = (value) => formatNumber(Math.round(Number(value)));
@@ -810,10 +779,12 @@ export function App() {
   });
   const [isDirty, setIsDirty] = useState(false);
   const [cloudStatus, setCloudStatus] = useState(supabase ? "connecting" : "offline");
+  const [cloudLoaded, setCloudLoaded] = useState(!supabase);
   const [cloudMessage, setCloudMessage] = useState("");
   const cloudReadyRef = useRef(false);
   const lastSyncedRef = useRef({ members: "", catalog: "", schedule: "" });
   const savedStateRef = useRef({ members, catalog, schedule: scheduleData });
+  const dirtyFieldsRef = useRef(new Set());
   const savingRef = useRef(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -834,10 +805,12 @@ export function App() {
         schedule: JSON.stringify(nextState.schedule),
       };
       savedStateRef.current = nextState;
+      dirtyFieldsRef.current.clear();
       setMembers(nextState.members);
       setCatalog(nextState.catalog);
       setScheduleData(nextState.schedule);
       setIsDirty(false);
+      setCloudLoaded(true);
     };
     const connect = async () => {
       setCloudStatus("connecting");
@@ -864,6 +837,7 @@ export function App() {
           catalog: JSON.stringify(initialState.catalog),
           schedule: JSON.stringify(initialState.schedule),
         };
+        setCloudLoaded(true);
       }
       cloudReadyRef.current = true;
       setCloudStatus("connected");
@@ -885,14 +859,15 @@ export function App() {
   }, []);
 
   useEffect(() => { localStorage.setItem("loa-active-week-v1", activeWeekStart); }, [activeWeekStart]);
-  const updateMembers = (value) => { setIsDirty(true); setMembers(value); };
-  const updateCatalog = (value) => { setIsDirty(true); setCatalog(value); };
-  const updateScheduleData = (value) => { setIsDirty(true); setScheduleData(value); };
+  const updateMembers = (value) => { dirtyFieldsRef.current.add("members"); setIsDirty(true); setMembers(value); };
+  const updateCatalog = (value) => { dirtyFieldsRef.current.add("catalog"); setIsDirty(true); setCatalog(value); };
+  const updateScheduleData = (value) => { dirtyFieldsRef.current.add("schedule"); setIsDirty(true); setScheduleData(value); };
   const cancelChanges = () => {
     const saved = savedStateRef.current;
     setMembers(saved.members);
     setCatalog(saved.catalog);
     setScheduleData(saved.schedule);
+    dirtyFieldsRef.current.clear();
     setIsDirty(false);
   };
   const saveChanges = async () => {
@@ -905,12 +880,14 @@ export function App() {
     savingRef.current = true;
     if (supabase) {
       setCloudStatus("saving");
-      const changedFields = Object.entries(state).filter(([field, value]) => JSON.stringify(value) !== lastSyncedRef.current[field]);
-      const results = await Promise.all(changedFields.map(([field, value]) => supabase.from("raid_board_state").update({ [field]: value, updated_at: new Date().toISOString() }).eq("id", "guild-main")));
-      const failed = results.find((result) => result.error);
-      if (failed?.error) {
+      const changedFields = [...dirtyFieldsRef.current].filter((field) => JSON.stringify(state[field]) !== lastSyncedRef.current[field]);
+      const changedState = Object.fromEntries(changedFields.map((field) => [field, state[field]]));
+      const { error } = changedFields.length
+        ? await supabase.from("raid_board_state").update({ ...changedState, updated_at: new Date().toISOString() }).eq("id", "guild-main")
+        : { error: null };
+      if (error) {
         setCloudStatus("error");
-        setCloudMessage(failed.error.message);
+        setCloudMessage(error.message);
         savingRef.current = false;
         setIsSaving(false);
         return;
@@ -923,6 +900,7 @@ export function App() {
     localStorage.setItem("loa-raid-catalog-v1", JSON.stringify(state.catalog));
     localStorage.setItem("loa-raid-schedule-v1", JSON.stringify(state.schedule));
     savedStateRef.current = state;
+    dirtyFieldsRef.current.clear();
     setIsDirty(false);
     savingRef.current = false;
     setIsSaving(false);
@@ -972,5 +950,5 @@ export function App() {
   const cloudText = { connecting: "공용 DB 연결 중", connected: "공용 DB 연결됨", saving: "공용 일정 저장 중", error: "공용 DB 설정 필요", offline: "브라우저에만 저장 중" }[cloudStatus];
   const canGoNext = activeWeekStart < latestVisibleWeekStart;
   const canCopyNextWeek = canGoNext && scheduleDayKeys.some((key) => schedule[key]?.length);
-  return <div className="app-shell"><AppHeader activeTab={activeTab} setActiveTab={setActiveTab} /><div className={`cloud-status ${cloudStatus}`} title={cloudMessage}><i /><span>{cloudText}</span>{cloudMessage && <small>{cloudMessage}</small>}</div><div className="page-wrap">{activeTab === "schedule" && <ScheduleView members={effectiveMembers} catalog={catalog} schedule={schedule} setSchedule={setCurrentSchedule} weekDays={weekDays} weekStart={activeWeekStart} canGoPrevious={activeWeekStart > earliestVisibleWeekStart} canGoNext={canGoNext} canCopyNextWeek={canCopyNextWeek} onPreviousWeek={() => setActiveWeekStart((weekStart) => clampVisibleWeek(shiftWeekKey(weekStart, -1)))} onCurrentWeek={() => setActiveWeekStart(currentWeekStart)} onNextWeek={() => setActiveWeekStart((weekStart) => clampVisibleWeek(shiftWeekKey(weekStart, 1)))} onCopyNextWeek={copyToNextWeek} onToggleUnavailable={toggleUnavailable} />}{activeTab === "personal" && <PersonalScheduleView members={effectiveMembers} schedule={schedule} catalog={catalog} weekDays={weekDays} weekStart={activeWeekStart} />}{activeTab === "members" && <MembersView members={effectiveMembers} setMembers={updateMembers} schedule={schedule} setSchedule={setCurrentSchedule} catalog={catalog} weekDays={weekDays} />}{activeTab === "raids" && <RaidsView catalog={catalog} setCatalog={updateCatalog} scheduleData={scheduleData} />}<SaveChangesBar isDirty={isDirty} isSaving={isSaving} onCancel={cancelChanges} onSave={saveChanges} /></div></div>;
+  return <div className="app-shell"><AppHeader activeTab={activeTab} setActiveTab={setActiveTab} /><div className={`cloud-status ${cloudStatus}`} title={cloudMessage}><i /><span>{cloudText}</span>{cloudMessage && <small>{cloudMessage}</small>}</div><div className="page-wrap">{!cloudLoaded ? <section className="info-banner"><strong>공용 일정 불러오는 중</strong><span>DB 연결이 완료되면 일정이 표시됩니다.</span></section> : <>{activeTab === "schedule" && <ScheduleView members={effectiveMembers} catalog={catalog} schedule={schedule} setSchedule={setCurrentSchedule} weekDays={weekDays} weekStart={activeWeekStart} canGoPrevious={activeWeekStart > earliestVisibleWeekStart} canGoNext={canGoNext} canCopyNextWeek={canCopyNextWeek} onPreviousWeek={() => setActiveWeekStart((weekStart) => clampVisibleWeek(shiftWeekKey(weekStart, -1)))} onCurrentWeek={() => setActiveWeekStart(currentWeekStart)} onNextWeek={() => setActiveWeekStart((weekStart) => clampVisibleWeek(shiftWeekKey(weekStart, 1)))} onCopyNextWeek={copyToNextWeek} onToggleUnavailable={toggleUnavailable} />}{activeTab === "personal" && <PersonalScheduleView members={effectiveMembers} schedule={schedule} catalog={catalog} weekDays={weekDays} weekStart={activeWeekStart} />}{activeTab === "members" && <MembersView members={effectiveMembers} setMembers={updateMembers} schedule={schedule} setSchedule={setCurrentSchedule} catalog={catalog} weekDays={weekDays} />}{activeTab === "raids" && <RaidsView catalog={catalog} setCatalog={updateCatalog} scheduleData={scheduleData} />}<SaveChangesBar isDirty={isDirty} isSaving={isSaving} onCancel={cancelChanges} onSave={saveChanges} /></>}</div></div>;
 }
