@@ -27,3 +27,10 @@ test("does not expose the empty fallback board before cloud data is loaded", () 
   assert.match(app, /!cloudLoaded \? <section className="info-banner">/);
   assert.match(app, /setCloudLoaded\(true\)/);
 });
+
+test("keeps unsaved fields when another browser publishes an update", () => {
+  assert.match(app, /applyCloudState\(payload\.new, true\)/);
+  assert.match(app, /!preserveDirtyFields \|\| !dirtyFieldsRef\.current\.has\("members"\)/);
+  assert.match(app, /!preserveDirtyFields \|\| !dirtyFieldsRef\.current\.has\("catalog"\)/);
+  assert.match(app, /!preserveDirtyFields \|\| !dirtyFieldsRef\.current\.has\("schedule"\)/);
+});

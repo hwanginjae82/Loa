@@ -1,110 +1,38 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import html2canvas from "html2canvas";
-import { initialGuildMembers } from "./initialGuildMembers.js";
-import { supabase } from "./supabase.js";
+import { supabase } from "./cloudStorage.js";
 import { SaveChangesBar } from "./SaveChangesBar.jsx";
 import { canDeleteScheduledRaid, removeScheduledRaid } from "./scheduledRaidDeletion.js";
 import "./scheduledRaidDeletion.css";
 import { migrateRosterSchedule } from "./rosterRefreshMigration.js";
 import { ClassIcon } from "./classIcons.jsx";
+import {
+  clampVisibleWeek,
+  currentWeekStart,
+  dayDefinitions,
+  defaultRaidTime,
+  earliestVisibleWeekStart,
+  emptyRaidDays,
+  emptyScheduleData,
+  findRosterCharacter,
+  getCalendarWeekOfMonth,
+  getRaidColor,
+  getWeekDays,
+  latestVisibleWeekStart,
+  normalizeCatalog,
+  normalizeMembers,
+  normalizeRaidDays,
+  normalizeScheduleData,
+  palette,
+  raidColorDefaults,
+  raidTimeOptions,
+  scheduleDayKeys,
+  shiftWeekKey,
+  sortRaidCatalog,
+} from "./boardModel.js";
 
-const initialWeekStart = "2026-08-12";
-const dayDefinitions = [
-  { key: "wed", label: "수", full: "수요일" }, { key: "thu", label: "목", full: "목요일" },
-  { key: "fri", label: "금", full: "금요일" }, { key: "sat", label: "토", full: "토요일" },
-  { key: "sun", label: "일", full: "일요일" }, { key: "mon", label: "월", full: "월요일" },
-  { key: "tue", label: "화", full: "화요일" },
-];
-const scheduleDayKeys = [...dayDefinitions.map((day) => day.key), "mobile"];
-const defaultRaidTime = "20:30";
-const raidTimeOptions = ["20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30", "00:00", "00:30", "01:00", "01:30", "02:00", "02:30", "03:00"];
 const parseDateKey = (dateKey) => new Date(`${dateKey}T00:00:00`);
-const toDateKey = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-const shiftWeekKey = (dateKey, amount) => { const date = parseDateKey(dateKey); date.setDate(date.getDate() + amount * 7); return toDateKey(date); };
-const getCurrentWeekStart = (today = new Date()) => {
-  const date = new Date(today); date.setHours(0, 0, 0, 0);
-  date.setDate(date.getDate() - ((date.getDay() - 3 + 7) % 7));
-  return toDateKey(date);
-};
-const currentWeekStart = getCurrentWeekStart();
-const earliestVisibleWeekStart = shiftWeekKey(currentWeekStart, -4);
-const latestVisibleWeekStart = shiftWeekKey(currentWeekStart, 1);
-const clampVisibleWeek = (weekStart) => weekStart < earliestVisibleWeekStart ? earliestVisibleWeekStart : weekStart > latestVisibleWeekStart ? latestVisibleWeekStart : weekStart;
-const getCalendarWeekOfMonth = (date) => Math.ceil((date.getDate() + new Date(date.getFullYear(), date.getMonth(), 1).getDay()) / 7);
-const getWeekDays = (weekStart) => {
-  const start = parseDateKey(weekStart);
-  return [...dayDefinitions.map((definition, index) => {
-    const date = new Date(start); date.setDate(start.getDate() + index);
-    return { ...definition, date: `${date.getMonth() + 1}/${date.getDate()}` };
-  }), { key: "mobile", label: "모", full: "모바출", date: "날짜 조율" }];
-};
-const emptyRaidDays = () => Object.fromEntries(scheduleDayKeys.map((key) => [key, []]));
-const emptyScheduleData = () => ({ version: 2, weeks: {} });
-const normalizeRaidDays = (raids = {}) => Object.fromEntries(scheduleDayKeys.map((key) => {
-  const normalized = (Array.isArray(raids[key]) ? raids[key] : []).map((instance) => ({
-    ...instance,
-    startTime: key === "mobile" ? "" : instance.startTime === "" ? "" : raidTimeOptions.includes(instance.startTime) ? instance.startTime : defaultRaidTime,
-  }));
-  const ordered = normalized.some((instance) => Number.isFinite(instance.order))
-    ? [...normalized].sort((left, right) => (left.order ?? Number.MAX_SAFE_INTEGER) - (right.order ?? Number.MAX_SAFE_INTEGER))
-    : [...normalized].sort((left, right) => raidTimeSortValue(left.startTime) - raidTimeSortValue(right.startTime));
-  return [key, ordered.map((instance, index) => ({ ...instance, order: index }))];
-}));
-const legacyCharacterNameById = new Map([
-  ...initialGuildMembers.flatMap((member) => member.characters.map((character) => [character.id, character.name])),
-  ["guild-3-extra-1", "블레이드자쿠"],
-  ["guild-5-extra-1", "테네오"],
-]);
-const characterNameFromId = (id) => legacyCharacterNameById.get(id) ?? (typeof id === "string" && id.includes(":") ? id.slice(id.indexOf(":") + 1) : null);
-const reconnectScheduleCharacters = (raids, members) => {
-  const normalized = normalizeRaidDays(raids);
-  const characters = members.flatMap((member) => member.characters);
-  const currentNameById = new Map(characters.map((character) => [character.id, character.name]));
-  const currentNames = new Set(characters.map((character) => character.name));
-  return Object.fromEntries(Object.entries(normalized).map(([dayKey, instances]) => [dayKey, instances.map((instance) => ({
-    ...instance,
-    characterIds: instance.characterIds.map((id) => {
-      if (!id || currentNames.has(id)) return id;
-      const characterName = currentNameById.get(id) ?? characterNameFromId(id);
-      return currentNames.has(characterName) ? characterName : id;
-    }),
-  }))]));
-};
-const findRosterCharacter = (roster, reference) => roster.find((character) => character.id === reference || character.name === reference);
 const raidTimeSortValue = (time) => { if (!time) return Number.MAX_SAFE_INTEGER; const [hour, minute] = time.split(":").map(Number); const value = hour * 60 + minute; return value < 12 * 60 ? value + 24 * 60 : value; };
-
-const palette = ["#ffd131", "#94d451", "#edaedf", "#f1c09f", "#9fc3ed", "#87e4e1", "#d7d7d7", "#dcb17a", "#c7b4f3", "#f3a6a6", "#a8d8b9", "#f6d58f", "#b7c9f2", "#d9a9c7", "#a9d9d4", "#c8b58d"];
-const raidColorDefaults = { gray: "#aaaaaa", blue: "#0f9dd2", gold: "#c49b00", yellow: "#f4d576", purple: "#85619e" };
-const getRaidColor = (raid) => raid.hexColor ?? raidColorDefaults[raid.color] ?? "#aaaaaa";
-const raidDifficultyOrder = (difficulty = "") => {
-  const stage = difficulty.match(/^(\d+)단계$/);
-  if (stage) return Number(stage[1]);
-  return { 노말: 1, 하드: 2, 나메: 3 }[difficulty] ?? 99;
-};
-const sortRaidCatalog = (catalog) => {
-  const nameOrder = new Map();
-  catalog.forEach((raid) => { if (!nameOrder.has(raid.name)) nameOrder.set(raid.name, nameOrder.size); });
-  return [...catalog].sort((left, right) => nameOrder.get(left.name) - nameOrder.get(right.name) || raidDifficultyOrder(left.difficulty) - raidDifficultyOrder(right.difficulty));
-};
-const normalizeMembers = (members) => {
-  const colorById = new Map(initialGuildMembers.map((member, index) => [member.id, palette[index % palette.length]]));
-  return members.map((member, index) => ({
-    ...member,
-    color: member.color ?? colorById.get(member.id) ?? palette[index % palette.length],
-    characters: member.characters.map((character, characterIndex) => ({ ...character, earnsGold: character.earnsGold ?? characterIndex < 6 })),
-  }));
-};
-const normalizeCatalog = (catalog) => {
-  const incoming = Array.isArray(catalog) ? catalog : [];
-  return sortRaidCatalog(incoming.map((raid) => ({ ...raid, hexColor: getRaidColor(raid) })));
-};
-const normalizeScheduleData = (schedule, members) => {
-  if (!schedule || typeof schedule !== "object") return emptyScheduleData();
-  if (schedule?.version === 2 && schedule.weeks) {
-    return { ...schedule, weeks: Object.fromEntries(Object.entries(schedule.weeks).map(([weekStart, week]) => [weekStart, { raids: reconnectScheduleCharacters(week.raids, members), unavailableByMember: week.unavailableByMember ?? {} }])) };
-  }
-  return { version: 2, weeks: { [initialWeekStart]: { raids: reconnectScheduleCharacters(schedule, members), unavailableByMember: Object.fromEntries(members.filter((member) => member.unavailable?.length).map((member) => [String(member.id), member.unavailable])) } } };
-};
 
 const formatNumber = (value) => new Intl.NumberFormat("ko-KR").format(value);
 const formatCombatPower = (value) => formatNumber(Math.round(Number(value)));
@@ -176,7 +104,7 @@ function RaidCard({ instance, catalog, roster, day, weekDays, conflictMap, isDra
   </article>;
 }
 
-function getCharacterAssignments(schedule, catalog, characterId, ignoredSlot = null, weekDays = getWeekDays(initialWeekStart)) {
+function getCharacterAssignments(schedule, catalog, characterId, ignoredSlot = null, weekDays) {
   return Object.entries(schedule).flatMap(([dayKey, raids]) => raids.flatMap((instance) => instance.characterIds.flatMap((id, slotIndex) => {
     if (id !== characterId) return [];
     if (ignoredSlot && ignoredSlot.dayKey === dayKey && ignoredSlot.instanceId === instance.id && ignoredSlot.slotIndex === slotIndex) return [];
@@ -477,28 +405,6 @@ function MemberAliasEditor({ member, onRename }) {
   return <div className="member-alias-editor"><label htmlFor={`alias-${member.id}`}>멤버 별명</label><div><input id={`alias-${member.id}`} value={value} onChange={(event) => setValue(event.target.value)} onBlur={commit} onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }} /><span>{member.characters.length}캐릭 · 골드 {goldCharacterCount}/6</span></div></div>;
 }
 
-function GuildImportModal({ onClose, onImport }) {
-  const [guildName, setGuildName] = useState("지금이야");
-  const [query, setQuery] = useState("");
-  const [status, setStatus] = useState("idle");
-  const [message, setMessage] = useState("");
-  const [characters, setCharacters] = useState([]);
-  const [selectedNames, setSelectedNames] = useState([]);
-  const loadGuild = async (event) => {
-    event?.preventDefault(); setStatus("loading"); setMessage(""); setSelectedNames([]);
-    try {
-      const response = await fetch(`/api/kloa/guild?guildName=${encodeURIComponent(guildName)}`);
-      const body = await response.json();
-      if (!response.ok) throw new Error(body.message || "길드 조회에 실패했습니다.");
-      setCharacters(body.characters); setStatus("success");
-    } catch (error) { setStatus("error"); setMessage(error.message); }
-  };
-  useEffect(() => { loadGuild(); }, []);
-  const filtered = useMemo(() => characters.filter((character) => character.name.toLocaleLowerCase("ko").includes(query.trim().toLocaleLowerCase("ko"))), [characters, query]);
-  const toggle = (name) => setSelectedNames((current) => current.includes(name) ? current.filter((item) => item !== name) : [...current, name]);
-  return <div className="modal-backdrop" role="presentation" onMouseDown={onClose}><section className="modal guild-import-modal" role="dialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}><div className="modal-heading"><div><p>공대 멤버 초기 설정</p><h3>길드 캐릭터에서 대표 캐릭터 선택</h3></div><button onClick={onClose}>닫기</button></div><p className="modal-description">실제 사람마다 대표 캐릭터를 하나씩 선택하세요. 완료하면 현재 예시 멤버를 교체하고, 공식 API로 각 원정대의 최대 6캐릭터를 저장할 수 있습니다.</p><form className="guild-lookup-form" onSubmit={loadGuild}><label>길드명<input required value={guildName} onChange={(event) => setGuildName(event.target.value)} /></label><button className="primary" disabled={status === "loading"}>{status === "loading" ? "불러오는 중" : "길드 조회"}</button></form>{status === "error" && <div className="api-error"><strong>길드 연결 확인 필요</strong><span>{message}</span></div>}{status === "success" && <><div className="guild-filter"><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`${characters.length}개 캐릭터에서 이름 검색`} /><strong>{selectedNames.length}명 선택</strong></div><div className="guild-character-list">{filtered.map((character) => <button type="button" key={character.name} className={selectedNames.includes(character.name) ? "selected" : ""} aria-pressed={selectedNames.includes(character.name)} onClick={() => toggle(character.name)}><span><strong>{character.name}</strong>{character.isOwner && <em>길드장</em>}</span><b>Lv. {character.itemLevel}</b></button>)}</div><button className="primary full" disabled={!selectedNames.length} onClick={() => onImport(characters.filter((character) => selectedNames.includes(character.name)))}>선택한 {selectedNames.length}명으로 초기 설정</button></>}</section></div>;
-}
-
 function CharacterAssignmentSummary({ assignments, weekDays }) {
   const raidCounts = assignments.reduce((counts, assignment) => ({ ...counts, [assignment.raidName]: (counts[assignment.raidName] ?? 0) + 1 }), {});
   return <div className="member-character-usage">
@@ -736,7 +642,7 @@ export function App() {
     if (!supabase) return undefined;
     let cancelled = false;
     let channel;
-    const applyCloudState = (row) => {
+    const applyCloudState = (row, preserveDirtyFields = false) => {
       const loadedMembers = normalizeMembers(row.members ?? []);
       const nextState = {
         members: loadedMembers,
@@ -749,11 +655,11 @@ export function App() {
         schedule: JSON.stringify(nextState.schedule),
       };
       savedStateRef.current = nextState;
-      dirtyFieldsRef.current.clear();
-      setMembers(nextState.members);
-      setCatalog(nextState.catalog);
-      setScheduleData(nextState.schedule);
-      setIsDirty(false);
+      if (!preserveDirtyFields) dirtyFieldsRef.current.clear();
+      if (!preserveDirtyFields || !dirtyFieldsRef.current.has("members")) setMembers(nextState.members);
+      if (!preserveDirtyFields || !dirtyFieldsRef.current.has("catalog")) setCatalog(nextState.catalog);
+      if (!preserveDirtyFields || !dirtyFieldsRef.current.has("schedule")) setScheduleData(nextState.schedule);
+      setIsDirty(dirtyFieldsRef.current.size > 0);
       setCloudLoaded(true);
     };
     const connect = async () => {
@@ -776,7 +682,7 @@ export function App() {
       setCloudMessage("");
       channel = supabase.channel("raid-board-state")
         .on("postgres_changes", { event: "*", schema: "public", table: "raid_board_state", filter: "id=eq.guild-main" }, (payload) => {
-          if (payload.new?.members && !savingRef.current) applyCloudState(payload.new);
+          if (payload.new?.members && !savingRef.current) applyCloudState(payload.new, true);
           setCloudStatus("connected");
           setCloudMessage("");
         })

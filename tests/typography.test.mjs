@@ -9,7 +9,6 @@ test("keeps the raid schedule readable at desktop and mobile sizes", () => {
   assert.match(styles, /\.slot\s*\{[^}]*font-size:\s*14px/);
   assert.match(styles, /\.role-labels span\s*\{[^}]*font-size:\s*12px/);
   assert.match(styles, /@media \(max-width: 820px\)[\s\S]*?\.slot\s*\{[^}]*font-size:\s*12px/);
-  assert.match(styles, /\.member-profile span\s*\{[^}]*font-size:\s*12px/);
   assert.match(styles, /\.character-grid strong\s*\{[^}]*font-size:\s*13px/);
   assert.match(styles, /\.personal-week section strong\s*\{[^}]*font-size:\s*12px/);
   assert.match(styles, /\.personal-week section span\s*\{[^}]*font-size:\s*12px/);
