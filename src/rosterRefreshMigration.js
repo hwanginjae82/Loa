@@ -1,13 +1,16 @@
 export function migrateRosterSchedule({ previousCharacters, refreshedCharacters, schedule }) {
-  const nameByPreviousId = new Map(previousCharacters.map((character) => [character.id, character.name]));
-  const refreshedIdByName = new Map(refreshedCharacters.map((character) => [character.name, character.id]));
+  const nameByPreviousReference = new Map(previousCharacters.flatMap((character) => [
+    [character.id, character.name],
+    [character.name, character.name],
+  ]));
+  const refreshedNames = new Set(refreshedCharacters.map((character) => character.name));
   const missingAssignedNames = new Set();
 
   for (const raids of Object.values(schedule)) {
     for (const raid of raids) {
-      for (const characterId of raid.characterIds) {
-        const name = nameByPreviousId.get(characterId);
-        if (name && !refreshedIdByName.has(name)) missingAssignedNames.add(name);
+      for (const characterReference of raid.characterIds) {
+        const name = nameByPreviousReference.get(characterReference);
+        if (name && !refreshedNames.has(name)) missingAssignedNames.add(name);
       }
     }
   }
@@ -18,9 +21,9 @@ export function migrateRosterSchedule({ previousCharacters, refreshedCharacters,
 
   const migratedSchedule = Object.fromEntries(Object.entries(schedule).map(([day, raids]) => [day, raids.map((raid) => ({
     ...raid,
-    characterIds: raid.characterIds.map((characterId) => {
-      const name = nameByPreviousId.get(characterId);
-      return name ? refreshedIdByName.get(name) : characterId;
+    characterIds: raid.characterIds.map((characterReference) => {
+      const name = nameByPreviousReference.get(characterReference);
+      return name && refreshedNames.has(name) ? name : characterReference;
     }),
   }))]));
 

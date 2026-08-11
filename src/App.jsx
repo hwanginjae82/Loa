@@ -58,17 +58,18 @@ const characterNameFromId = (id) => legacyCharacterNameById.get(id) ?? (typeof i
 const reconnectScheduleCharacters = (raids, members) => {
   const normalized = normalizeRaidDays(raids);
   const characters = members.flatMap((member) => member.characters);
-  const currentIds = new Set(characters.map((character) => character.id));
-  const currentIdByName = new Map(characters.map((character) => [character.name, character.id]));
+  const currentNameById = new Map(characters.map((character) => [character.id, character.name]));
+  const currentNames = new Set(characters.map((character) => character.name));
   return Object.fromEntries(Object.entries(normalized).map(([dayKey, instances]) => [dayKey, instances.map((instance) => ({
     ...instance,
     characterIds: instance.characterIds.map((id) => {
-      if (!id || currentIds.has(id)) return id;
-      const characterName = characterNameFromId(id);
-      return currentIdByName.get(characterName) ?? id;
+      if (!id || currentNames.has(id)) return id;
+      const characterName = currentNameById.get(id) ?? characterNameFromId(id);
+      return currentNames.has(characterName) ? characterName : id;
     }),
   }))]));
 };
+const findRosterCharacter = (roster, reference) => roster.find((character) => character.id === reference || character.name === reference);
 const raidTimeSortValue = (time) => { if (!time) return Number.MAX_SAFE_INTEGER; const [hour, minute] = time.split(":").map(Number); const value = hour * 60 + minute; return value < 12 * 60 ? value + 24 * 60 : value; };
 
 const palette = ["#ffd131", "#94d451", "#edaedf", "#f1c09f", "#9fc3ed", "#87e4e1", "#d7d7d7", "#dcb17a", "#c7b4f3", "#f3a6a6", "#a8d8b9", "#f6d58f", "#b7c9f2", "#d9a9c7", "#a9d9d4", "#c8b58d"];
@@ -224,10 +225,10 @@ function RaidCard({ instance, catalog, roster, day, weekDays, conflictMap, isDra
   const raidVariants = sortRaidCatalog(catalog.filter((item) => item.name === raid.name));
   const slots = Array.from({ length: raid.size }, (_, index) => instance.characterIds[index] ?? null);
   const parties = raid.size === 8 ? [slots.slice(0, 4), slots.slice(4, 8)] : [slots];
-  const combatPowers = slots.map((characterId) => Number(roster.find((item) => item.id === characterId)?.combatPower)).filter((value) => Number.isFinite(value) && value > 0);
+  const combatPowers = slots.map((characterId) => Number(findRosterCharacter(roster, characterId)?.combatPower)).filter((value) => Number.isFinite(value) && value > 0);
   const averageCombatPower = combatPowers.length ? Math.round(combatPowers.reduce((sum, value) => sum + value, 0) / combatPowers.length) : null;
   const conflictRows = [...new Map(slots.flatMap((characterId, slotIndex) => {
-    const character = roster.find((item) => item.id === characterId);
+    const character = findRosterCharacter(roster, characterId);
     return (conflictMap.get(instance)?.get(slotIndex) ?? []).map((conflict) => [`${characterId}-${conflict.label}`, { characterName: character?.name ?? "캐릭터 정보 없음", ...conflict }]);
   })).values()];
   const onlyNoRewardConflicts = conflictRows.length > 0 && conflictRows.every((conflict) => conflict.label.includes("골드 없음"));
@@ -238,12 +239,12 @@ function RaidCard({ instance, catalog, roster, day, weekDays, conflictMap, isDra
     {parties.map((party, partyIndex) => <div className="party" key={partyIndex}>
       <div className="party-label">{raid.size === 8 ? `${partyIndex + 1}파티` : "파티"}</div>
       <div className="role-labels">{party.map((characterId, slotIndex) => {
-        const character = roster.find((item) => item.id === characterId);
+        const character = findRosterCharacter(roster, characterId);
         return <span key={slotIndex}>{character && <ClassIcon className={character.className} size="role" />}{slotIndex === 0 ? "서폿" : "딜러"}</span>;
       })}</div>
       <div className="slots">{party.map((characterId, slotIndex) => {
         const absoluteSlot = partyIndex * 4 + slotIndex;
-        const character = roster.find((item) => item.id === characterId);
+        const character = findRosterCharacter(roster, characterId);
         const conflicts = conflictMap.get(instance)?.get(absoluteSlot) ?? [];
         const conflictLabel = conflicts.map((conflict) => conflict.label).join(" · ");
         const conflictTitle = conflicts.map((conflict) => `${conflict.label}: ${conflict.details.join(" / ")}`).join("\n");
@@ -309,15 +310,15 @@ function AssignmentModal({ members, roster, assignment, schedule, dayRaids, cata
   const raid = catalog.find((item) => item.id === raidInstance.catalogId);
   const targetSlotIndex = Number(assignment.slotIndex);
   const targetRole = targetSlotIndex % 4 === 0 ? "서폿" : "딜러";
-  const currentCharacter = roster.find((character) => character.id === raidInstance.characterIds[targetSlotIndex]);
+  const currentCharacter = findRosterCharacter(roster, raidInstance.characterIds[targetSlotIndex]);
   const occupiedMemberIds = new Set(raidInstance.characterIds
     .filter((_, index) => index !== targetSlotIndex)
-    .map((id) => roster.find((character) => character.id === id)?.memberId)
+    .map((id) => findRosterCharacter(roster, id)?.memberId)
     .filter(Boolean));
   const candidateGroups = members
     .filter((member) => member.active !== false && !occupiedMemberIds.has(member.id))
     .map((member) => ({ member, characters: member.characters
-      .map((character) => ({ ...character, assignments: getCharacterAssignments(schedule, catalog, character.id, { dayKey: selectedDay, instanceId: assignment.instanceId, slotIndex: targetSlotIndex }, weekDays) }))
+      .map((character) => ({ ...character, assignments: getCharacterAssignments(schedule, catalog, character.name, { dayKey: selectedDay, instanceId: assignment.instanceId, slotIndex: targetSlotIndex }, weekDays) }))
       .filter((character) => character.role === targetRole && character.itemLevel >= raid.minLevel && !character.assignments.some((item) => item.raidName === raid.name)) }))
     .filter((item) => item.characters.length);
   const priorityCandidates = candidateGroups.map(({ member, characters }) => ({ member, characters: characters.filter((character) => character.earnsGold !== false && character.assignments.length < 3) })).filter((item) => item.characters.length);
@@ -325,11 +326,11 @@ function AssignmentModal({ members, roster, assignment, schedule, dayRaids, cata
   const currentMember = members.find((member) => member.id === currentCharacter?.memberId);
   const currentMemberHasCandidate = candidateGroups.some((item) => item.member.id === currentMember?.id);
   const blockedCurrentCharacters = currentMember?.characters.map((character) => {
-    const assignments = getCharacterAssignments(schedule, catalog, character.id, { dayKey: selectedDay, instanceId: assignment.instanceId, slotIndex: targetSlotIndex }, weekDays);
+    const assignments = getCharacterAssignments(schedule, catalog, character.name, { dayKey: selectedDay, instanceId: assignment.instanceId, slotIndex: targetSlotIndex }, weekDays);
     const reason = character.role !== targetRole ? `${character.role} 역할` : character.itemLevel < raid.minLevel ? `Lv. ${raid.minLevel} 미달` : assignments.some((item) => item.raidName === raid.name) ? `${raid.name} 이미 참여` : null;
     return { ...character, assignments, reason };
   }).filter((character) => character.reason) ?? [];
-  const renderCandidateGroups = (groups, optional = false) => <div className={`roster-picker ${optional ? "optional" : "priority"}`}>{groups.map(({ member, characters }) => <section key={member.id}><div className="picker-member"><i style={{ background: member.color }} /><strong>{member.name}</strong><span>{characters.length}개 {targetRole}</span>{member.unavailable.includes(selectedDay) && <b>오늘 불가</b>}</div><div>{characters.map((character) => { const warning = member.unavailable.includes(selectedDay); return <button key={character.id} onClick={() => onAssign(character.id)}><ClassIcon className={character.className} /><strong>{character.name}{character.earnsGold === false ? " · 비골드 캐릭터" : optional ? " · 추가 참여" : ""}</strong><small>{character.className} · {character.role} · Lv. {character.itemLevel} · {character.combatPower != null ? formatCombatPower(character.combatPower) : "전투력 없음"}<span className="raid-usage">주간 {character.assignments.length}/3{character.assignments.length ? ` · ${character.assignments.map((item) => item.label).join(", ")}` : " · 배정 없음"}</span>{optional && <span className="no-reward-notice">이 레이드에서는 골드를 받지 않습니다.</span>}</small><b className={warning ? "bad" : optional ? "no-reward" : "good"}>{warning ? "요일 확인" : optional ? "골드 없음" : "우선 선택"}</b></button>; })}</div></section>)}</div>;
+  const renderCandidateGroups = (groups, optional = false) => <div className={`roster-picker ${optional ? "optional" : "priority"}`}>{groups.map(({ member, characters }) => <section key={member.id}><div className="picker-member"><i style={{ background: member.color }} /><strong>{member.name}</strong><span>{characters.length}개 {targetRole}</span>{member.unavailable.includes(selectedDay) && <b>오늘 불가</b>}</div><div>{characters.map((character) => { const warning = member.unavailable.includes(selectedDay); return <button key={character.id} onClick={() => onAssign(character.name)}><ClassIcon className={character.className} /><strong>{character.name}{character.earnsGold === false ? " · 비골드 캐릭터" : optional ? " · 추가 참여" : ""}</strong><small>{character.className} · {character.role} · Lv. {character.itemLevel} · {character.combatPower != null ? formatCombatPower(character.combatPower) : "전투력 없음"}<span className="raid-usage">주간 {character.assignments.length}/3{character.assignments.length ? ` · ${character.assignments.map((item) => item.label).join(", ")}` : " · 배정 없음"}</span>{optional && <span className="no-reward-notice">이 레이드에서는 골드를 받지 않습니다.</span>}</small><b className={warning ? "bad" : optional ? "no-reward" : "good"}>{warning ? "요일 확인" : optional ? "골드 없음" : "우선 선택"}</b></button>; })}</div></section>)}</div>;
   return <div className="modal-backdrop" role="presentation" onMouseDown={onClose}><section className="modal roster-modal" role="dialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}><div className="modal-heading"><div><p>{targetRole} 슬롯 · 입장 레벨 이상 · 동일 레이드 주 1회</p><h3>{targetRole} 캐릭터 선택</h3></div><button onClick={onClose}>닫기</button></div><button className="remove-member" onClick={() => onAssign(null)}>빈자리로 두기</button>{currentMember && !currentMemberHasCandidate && <div className="same-member-blocked"><strong>{currentMember.name} 멤버의 교체 가능한 캐릭터가 없습니다.</strong><span>현재 칸은 같은 멤버로 교체할 수 있지만, 아래 조건에 걸린 캐릭터는 선택할 수 없습니다.</span><div>{blockedCurrentCharacters.map((character) => <p key={character.id}><b>{character.name}</b><em>{character.reason}</em></p>)}</div></div>}{!candidateGroups.length && <div className="api-error"><strong>선택 가능한 캐릭터가 없습니다.</strong><span>멤버 활성 상태, 역할, 입장 레벨과 동일 레이드 중복 여부를 확인해주세요.</span></div>}{priorityCandidates.length > 0 && <section className="candidate-tier"><div className="candidate-tier-heading"><strong>골드 획득 우선 캐릭터</strong><span>주간 3회 미만 · 먼저 배정 추천</span></div>{renderCandidateGroups(priorityCandidates)}</section>}{optionalCandidates.length > 0 && <section className="candidate-tier optional-tier"><div className="candidate-tier-heading"><strong>추가 참여 가능</strong><span>이미 3회 완료 또는 비골드 캐릭터 · 선택 가능</span></div>{renderCandidateGroups(optionalCandidates, true)}</section>}</section></div>;
 }
 
@@ -377,7 +378,7 @@ function WeeklyScheduleExport({ exportRef, schedule, catalog, members, weekDays,
             {parties.map((party, partyIndex) => <div className="weekly-export-party" key={partyIndex}>
               <b>{raid.size === 8 ? `${partyIndex + 1}파티` : "파티"}</b>
               <div>{party.map((characterId, slotIndex) => {
-                const character = roster.find((item) => item.id === characterId);
+                const character = findRosterCharacter(roster, characterId);
                 const isUnavailable = character?.unavailable.includes(day.key);
                 return <span className={!character ? "empty" : ""} style={character ? { background: character.color } : undefined} key={slotIndex}><strong>{character?.name ?? (slotIndex === 0 ? "서폿 필요" : "딜러 필요")}</strong>{isUnavailable && <em>불참</em>}</span>;
               })}</div>
@@ -409,26 +410,26 @@ function ScheduleView({ members, catalog, schedule, setSchedule, weekDays, weekS
     : (left, right) => (left.order ?? Number.MAX_SAFE_INTEGER) - (right.order ?? Number.MAX_SAFE_INTEGER)), [dayRaids, isTimeSorted]);
   const conflictMap = useMemo(() => getScheduleConflictMap(schedule, catalog, weekDays), [schedule, catalog, weekDays]);
   const extraParticipants = useMemo(() => roster.flatMap((character) => {
-    const assignments = getCharacterAssignments(schedule, catalog, character.id, null, weekDays);
+    const assignments = getCharacterAssignments(schedule, catalog, character.name, null, weekDays);
     if (assignments.length <= 3) return [];
     const noRewardAssignments = [...assignments].sort((left, right) => left.minLevel - right.minLevel || left.gold - right.gold).slice(0, assignments.length - 3);
     return [{ character, count: assignments.length, noRewardAssignments }];
   }), [roster, schedule, catalog, weekDays]);
 
-  const assignCharacter = (characterId) => {
-    if (characterId) {
+  const assignCharacter = (characterName) => {
+    if (characterName) {
       const raidInstance = dayRaids.find((raid) => raid.id === assignment.instanceId);
-      const candidate = roster.find((character) => character.id === characterId);
+      const candidate = findRosterCharacter(roster, characterName);
       const targetSlotIndex = Number(assignment.slotIndex);
       const targetRole = targetSlotIndex % 4 === 0 ? "서폿" : "딜러";
-      const duplicateMember = raidInstance.characterIds.some((id, index) => index !== targetSlotIndex && roster.find((character) => character.id === id)?.memberId === candidate?.memberId);
+      const duplicateMember = raidInstance.characterIds.some((id, index) => index !== targetSlotIndex && findRosterCharacter(roster, id)?.memberId === candidate?.memberId);
       const raid = catalog.find((item) => item.id === raidInstance.catalogId);
-      const weeklyAssignments = getCharacterAssignments(schedule, catalog, characterId, { dayKey: selectedDay, instanceId: assignment.instanceId, slotIndex: targetSlotIndex }, weekDays);
+      const weeklyAssignments = getCharacterAssignments(schedule, catalog, characterName, { dayKey: selectedDay, instanceId: assignment.instanceId, slotIndex: targetSlotIndex }, weekDays);
       const duplicateRaid = weeklyAssignments.some((item) => item.raidName === raid.name);
       if (!candidate || candidate.role !== targetRole || candidate.itemLevel < raid.minLevel || duplicateMember || duplicateRaid) return;
     }
     setSchedule((current) => ({ ...current, [selectedDay]: current[selectedDay].map((raid) => raid.id === assignment.instanceId
-      ? { ...raid, characterIds: Array.from({ length: catalog.find((item) => item.id === raid.catalogId).size }, (_, index) => index === assignment.slotIndex ? characterId : raid.characterIds[index] ?? null) }
+      ? { ...raid, characterIds: Array.from({ length: catalog.find((item) => item.id === raid.catalogId).size }, (_, index) => index === assignment.slotIndex ? characterName : raid.characterIds[index] ?? null) }
       : raid) }));
     setAssignment(null);
   };
@@ -498,7 +499,7 @@ function ScheduleView({ members, catalog, schedule, setSchedule, weekDays, weekS
   };
   const warningCount = useMemo(() => dayRaids.reduce((count, instance) => {
     const raid = catalog.find((item) => item.id === instance.catalogId);
-    return count + instance.characterIds.filter((id, slotIndex) => { const character = roster.find((item) => item.id === id); return id && (!character || character.unavailable.includes(selectedDay) || character.itemLevel < raid.minLevel || conflictMap.get(instance)?.has(slotIndex)); }).length;
+    return count + instance.characterIds.filter((id, slotIndex) => { const character = findRosterCharacter(roster, id); return id && (!character || character.unavailable.includes(selectedDay) || character.itemLevel < raid.minLevel || conflictMap.get(instance)?.has(slotIndex)); }).length;
   }, 0), [dayRaids, catalog, roster, selectedDay, conflictMap]);
 
   const startDate = parseDateKey(weekStart);
@@ -622,7 +623,7 @@ function MemberRosterCard({ member, schedule, catalog, weekDays, onRename, onCol
       <button type="button" className="member-fold-toggle" aria-expanded={!collapsed} onClick={toggleCollapsed}>{collapsed ? "펼치기 ▼" : "접기 ▲"}</button>
     </div>
     {!collapsed && <div className="character-grid">{member.characters.map((character) => {
-      const assignments = getCharacterAssignments(schedule, catalog, character.id, null, weekDays);
+      const assignments = getCharacterAssignments(schedule, catalog, character.name, null, weekDays);
       return <section key={character.id} className={character.earnsGold === false ? "no-gold" : ""}><div className="character-identity"><ClassIcon className={character.className} /><div><strong>{character.name}</strong><span>{character.className}</span></div></div><div className="character-power"><b>Lv. {character.itemLevel}</b>{character.combatPower != null && <small>전투력 {formatCombatPower(character.combatPower)}</small>}</div><div className="character-badges"><button className={character.role === "서폿" ? "support" : "dealer"} disabled={character.className !== "발키리"} title={character.className === "발키리" ? "딜러/서폿 전환" : "직업 고정 역할"} onClick={() => onToggleRole(character.id)}>{character.role}</button><button className={`gold-toggle ${character.earnsGold === false ? "off" : "on"}`} title="이 캐릭터의 레이드 골드 획득 여부" onClick={() => onToggleGold(character.id)}>{character.earnsGold === false ? "비골드" : "골드"}</button></div><CharacterAssignmentSummary assignments={assignments} weekDays={weekDays} /></section>;
     })}</div>}
   </article>;
@@ -664,7 +665,7 @@ function MembersView({ members, setMembers, schedule, setSchedule, catalog, week
   const syncingMember = syncMemberId === "__new__" ? { id: "__new__", name: "신규 멤버", characters: [] } : members.find((member) => member.id === syncMemberId);
   const refreshScheduledMembers = async () => {
     const scheduledCharacterIds = new Set(Object.values(schedule).flatMap((instances) => instances.flatMap((instance) => instance.characterIds.filter(Boolean))));
-    const targets = members.flatMap((member) => member.characters).filter((character) => scheduledCharacterIds.has(character.id));
+    const targets = members.flatMap((member) => member.characters).filter((character) => scheduledCharacterIds.has(character.id) || scheduledCharacterIds.has(character.name));
     if (!targets.length) { setBulkRefreshStatus("현재 일정에 등록된 캐릭터가 없습니다."); return; }
     setBulkRefreshing(true); setBulkRefreshStatus(`${targets.length}캐릭터 레벨·전투력 갱신 중`);
     const results = await Promise.all(targets.map(async (character) => {
@@ -730,7 +731,7 @@ function PersonalScheduleView({ members, schedule, catalog, weekDays, weekStart 
     return { ...current, [weekStart]: { ...weekSelections, [characterId]: nextSelected } };
   });
   const characterSummaries = selectedCharacters.map((character) => {
-    const assignments = getCharacterAssignments(schedule, catalog, character.id, null, weekDays);
+    const assignments = getCharacterAssignments(schedule, catalog, character.name, null, weekDays);
     const uniqueAssignments = [...new Map(assignments.map((assignment) => [assignment.raidName, assignment])).values()];
     const assignedRaidNames = new Set(uniqueAssignments.map((assignment) => assignment.raidName));
     const selectedPersonalRaids = [...new Map((personalExtraRaids[weekStart]?.[character.id] ?? [])
@@ -830,7 +831,7 @@ export function App() {
       lastSyncedRef.current = {
         members: JSON.stringify(nextState.members),
         catalog: JSON.stringify(nextState.catalog),
-        schedule: JSON.stringify(row.schedule ?? initialSchedule),
+        schedule: JSON.stringify(nextState.schedule),
       };
       savedStateRef.current = nextState;
       setMembers(nextState.members);
