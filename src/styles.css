@@ -291,3 +291,10 @@ button { cursor: pointer; }
 .personal-progress-character > span { display: grid; gap: 1px; margin: 0; }
 .personal-progress-character > span b { font-size: 13px; }
 .personal-progress-character > span small { color: #737d72; font-size: 9px; font-weight: 600; }
+.tab-panel {
+  display: contents;
+}
+
+.tab-panel[hidden] {
+  display: none;
+}

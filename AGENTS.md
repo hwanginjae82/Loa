@@ -17,13 +17,13 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - Raid types, difficulties, party size, minimum item level, and acquired gold are administrator-managed because the official API does not expose a reliable complete raid requirement catalog.
 - Acquired gold is display-only. Eligibility warnings use member availability and character item level, not combat power or gold.
 - Member fixed unavailable weekdays remain editable and produce schedule warnings; warnings do not block assignment.
-- Members, raid catalog entries, and the weekly schedule are shared through the Supabase `raid_board_state` record; the selected personal member and character filters remain browser-local.
+- Members, characters, raid catalog entries, and weekly schedules use separate normalized Supabase tables; each week is one `raid_board_weeks` row keyed by its Wednesday `week_start`. The selected personal member and character filters remain browser-local.
 - A member can store more than six characters. `earnsGold` marks at most six gold-earning characters; additional characters remain schedulable and default to non-gold.
 - A character earns gold from up to three distinct raids per week but may be assigned to additional raids as a no-gold participant. The same raid family remains limited to once per week, regardless of difficulty or stage.
 - Additional no-gold participation is shown in amber while same-family conflicts remain red. Each affected raid card provides a collapsed detail list with the character name plus every relevant day, time, raid, and difficulty.
 - For characters scheduled more than three times, mark only the lowest-item-level extra assignment(s) as no-gold (one raid at 4/3, two at 5/3) and show all such characters in a separate weekly extra-participation summary.
 - Replacing a character in its current raid slot may reuse another eligible character from the same member, while the same member remains blocked from occupying a second slot in that raid. If no same-member replacement is eligible, the picker lists each blocked character and its role, level, weekly-count, or duplicate-raid reason.
-- Supabase saves members, raid catalog, and schedule as separate column updates so a stale browser tab cannot overwrite unrelated shared data.
+- Supabase saves only changed member, character, raid-catalog, and week rows through one transactional RPC so a stale browser tab cannot overwrite unrelated shared data.
 - Roster refresh preserves existing character IDs by character name. Schedule loading reconnects legacy and API-style IDs by character name so refreshing a roster does not orphan existing assignments.
 - Member colors and raid header colors are editable, persisted, and reused consistently across management and schedule views.
 - Local previews connect only to the dedicated `suqaaebnhcakpuctjmeq` Dev DB and must never connect to the production Supabase project. The published site connects only to the production project.

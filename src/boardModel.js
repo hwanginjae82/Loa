@@ -66,6 +66,7 @@ export const emptyScheduleData = () => ({ version: 2, weeks: {} });
 export const normalizeRaidDays = (raids = {}) => Object.fromEntries(scheduleDayKeys.map((key) => {
   const normalized = (Array.isArray(raids[key]) ? raids[key] : []).map((instance) => ({
     ...instance,
+    catalogId: instance.catalogId == null ? instance.catalogId : String(instance.catalogId),
     startTime: key === "mobile" ? "" : instance.startTime === "" ? "" : raidTimeOptions.includes(instance.startTime) ? instance.startTime : defaultRaidTime,
   }));
   const ordered = normalized.some((instance) => Number.isFinite(instance.order))
@@ -118,7 +119,7 @@ export const normalizeMembers = (members) => members.map((member, index) => ({
 
 export const normalizeCatalog = (catalog) => {
   const incoming = Array.isArray(catalog) ? catalog : [];
-  return sortRaidCatalog(incoming.map((raid) => ({ ...raid, hexColor: getRaidColor(raid) })));
+  return sortRaidCatalog(incoming.map((raid) => ({ ...raid, id: String(raid.id), hexColor: getRaidColor(raid) })));
 };
 
 export const normalizeScheduleData = (schedule, members) => {

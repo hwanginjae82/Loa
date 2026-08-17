@@ -50,3 +50,11 @@ test("sorts raid difficulties in normal, hard, nightmare order", () => {
 
   assert.deepEqual(sorted.map((raid) => raid.id), ["normal", "hard", "nightmare"]);
 });
+
+test("normalizes catalog references to stable text keys", () => {
+  const members = [];
+  const normalized = normalizeScheduleData({ version: 2, weeks: {
+    "2026-08-12": { raids: { wed: [{ id: 1, catalogId: 42, characterIds: [] }] }, unavailableByMember: {} },
+  } }, members);
+  assert.equal(normalized.weeks["2026-08-12"].raids.wed[0].catalogId, "42");
+});

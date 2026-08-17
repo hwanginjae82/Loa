@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import html2canvas from "html2canvas";
 import { supabase } from "./cloudStorage.js";
+import { buildBoardChanges, loadCloudBoard, realtimeBoardTables, saveCloudBoardChanges } from "./cloudRepository.js";
 import { SaveChangesBar } from "./SaveChangesBar.jsx";
 import { canDeleteScheduledRaid, removeScheduledRaid } from "./scheduledRaidDeletion.js";
 import "./scheduledRaidDeletion.css";
@@ -348,10 +349,10 @@ function ScheduleView({ members, catalog, schedule, setSchedule, weekDays, weekS
   return <>
     <section className="week-toolbar"><div className="week-navigation"><button className="text-button" onClick={onPreviousWeek} disabled={!canGoPrevious}>이전 주</button><button className="current-week-button" onClick={onCurrentWeek} disabled={weekStart === currentWeekStart}>현재 주</button><button className="text-button" onClick={onNextWeek} disabled={!canGoNext}>다음 주</button></div><div className="week-label"><span>{startDate.getFullYear()}년 {startDate.getMonth() + 1}월 {startDate.getDate()}일 ~ {endDate.getMonth() + 1}월 {endDate.getDate()}일</span><strong>{startDate.getMonth() + 1}월 {getCalendarWeekOfMonth(startDate)}주차</strong></div><div className="week-actions"><button className="export-week" onClick={downloadWeeklyImage} disabled={isExporting} title="일정량에 맞춰 여러 장으로 자동 분할합니다.">{isExporting ? "이미지 만드는 중" : "일정 이미지 저장"}</button><button className="copy-week" onClick={onCopyNextWeek} disabled={!canCopyNextWeek} title={canGoNext && !canCopyNextWeek ? "현재 주에 복사할 일정이 없습니다." : "다음 주 일정으로 전체 복사"}>{canGoNext && !canCopyNextWeek ? "복사 일정 없음" : "다음 주 복사"}</button></div></section>
     <section className="day-tabs" aria-label="요일 선택">{weekDays.map((day) => <button key={day.key} className={`${selectedDay === day.key ? "active" : ""} ${day.key === "sun" ? "sunday" : ""} ${day.key === "mobile" ? "mobile-call" : ""}`} onClick={() => setSelectedDay(day.key)}><span>{day.label}</span><strong>{day.date}</strong><small>{schedule[day.key]?.length ?? 0}개</small></button>)}</section>
-    {extraParticipants.length > 0 && <section className="weekly-extra-participants"><div><strong>추가 참여 캐릭터</strong><span>3회 초과 레이드는 입장 가능하지만 골드를 받지 않습니다.</span></div><div>{extraParticipants.map(({ character, count, noRewardAssignments }) => <article key={character.id} style={{ borderLeftColor: character.color }}><strong>{character.name}</strong><b>{count}/3</b><span>{noRewardAssignments.map((assignment) => `${assignment.raidName} ${assignment.difficulty}`).join(" · ")} 골드 없음</span></article>)}</div></section>}
     <div className="content-grid"><main className="schedule-panel"><div className="section-heading"><div><p>{dayInfo.date}</p><h2>{dayInfo.full} 공대 일정</h2></div><div className="heading-actions"><button className="text-button" onClick={toggleTimeSortedView}>{isTimeSorted ? "직접순 보기" : "시간순 보기"}</button><button className="text-button" onClick={() => setShowAvailability(true)}>이번 주 불참 설정</button><button className="primary" onClick={() => setShowAddRaid(true)}>+ 레이드 추가</button></div></div>{displayDayRaids.length ? displayDayRaids.map((instance, index) => <RaidCard key={instance.id} instance={instance} catalog={catalog} roster={roster} day={selectedDay} weekDays={weekDays} conflictMap={conflictMap} isDragging={draggingRaidId === instance.id} canMoveUp={index > 0} canMoveDown={index < displayDayRaids.length - 1} onSlotClick={(instanceId, slotIndex) => setAssignment({ instanceId, slotIndex })} onCatalogChange={(catalogId) => changeRaidCatalog(instance.id, catalogId)} onTimeChange={(startTime) => changeRaidTime(instance.id, startTime)} onMoveDay={(targetDay) => moveRaid(instance.id, targetDay)} onDragStart={(event) => { setDraggingRaidId(instance.id); event.dataTransfer.effectAllowed = "move"; event.dataTransfer.setData("text/plain", String(instance.id)); }} onDragEnd={() => setDraggingRaidId(null)} onDrop={(event) => { event.preventDefault(); const sourceId = draggingRaidId ?? Number(event.dataTransfer.getData("text/plain")); reorderRaid(sourceId, instance.id); setDraggingRaidId(null); }} onMoveUp={() => moveRaidBy(instance.id, -1)} onMoveDown={() => moveRaidBy(instance.id, 1)} canDelete={canDeleteScheduledRaid(instance)} onDelete={() => deleteRaid(instance.id)} />) : <div className="empty-schedule"><strong>{dayInfo.full} 일정이 없습니다.</strong><span>{selectedDay === "mobile" ? "날짜를 조율할 공대를 이곳에 추가하세요." : "레이드를 추가하거나 다른 날짜의 공대를 이 날짜로 이동하세요."}</span></div>}</main>
       <aside className="summary-panel"><p className="summary-title">오늘의 편성 상태</p><div className="summary-number"><strong>{dayRaids.length}</strong><span>개 레이드</span></div><div className={`notice ${warningCount ? "has-warning" : ""}`}><strong>{warningCount ? `${warningCount}개 슬롯 확인 필요` : "편성 이상 없음"}</strong><p>{warningCount ? "불참·레벨 미달·추가 참여(골드 없음)·동일 레이드 중복을 확인해주세요." : "모든 캐릭터가 참가 조건을 만족합니다."}</p></div><div className="legend"><span><i className="dot red" />불참/레벨/중복</span><span><i className="dot orange" />추가 참여</span><span><i className="dot outline" />빈자리</span></div></aside>
     </div>
+    {extraParticipants.length > 0 && <section className="weekly-extra-participants"><div><strong>추가 참여 캐릭터</strong><span>3회 초과 레이드는 입장 가능하지만 골드를 받지 않습니다.</span></div><div>{extraParticipants.map(({ character, count, noRewardAssignments }) => <article key={character.id} style={{ borderLeftColor: character.color }}><strong>{character.name}</strong><b>{count}/3</b><span>{noRewardAssignments.map((assignment) => `${assignment.raidName} ${assignment.difficulty}`).join(" · ")} 골드 없음</span></article>)}</div></section>}
     {assignment && <AssignmentModal members={members} roster={roster} assignment={assignment} schedule={schedule} dayRaids={dayRaids} catalog={catalog} selectedDay={selectedDay} weekDays={weekDays} onAssign={assignCharacter} onClose={() => setAssignment(null)} />}
     {showAvailability && <WeeklyAvailabilityModal members={members} weekDays={weekDays} onToggleDay={onToggleUnavailable} onClose={() => setShowAvailability(false)} />}
     {showAddRaid && <div className="modal-backdrop" role="presentation" onMouseDown={() => setShowAddRaid(false)}><section className="modal" role="dialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}><div className="modal-heading"><div><p>{dayInfo.full} 일정</p><h3>레이드 추가</h3></div><button onClick={() => setShowAddRaid(false)}>닫기</button></div><div className="catalog-picker">{catalog.map((raid) => <button key={raid.id} onClick={() => addRaid(raid.id)}><span className={`catalog-color ${raid.color}`} style={{ background: getRaidColor(raid) }} /><span><strong>{raid.name} {raid.difficulty}</strong><small>{raid.size}인 · Lv. {raid.minLevel} · {formatNumber(raid.gold)} 골드</small></span></button>)}</div></section></div>}
@@ -632,8 +633,8 @@ export function App() {
   const [cloudLoaded, setCloudLoaded] = useState(!supabase);
   const [cloudMessage, setCloudMessage] = useState("");
   const cloudReadyRef = useRef(false);
-  const lastSyncedRef = useRef({ members: "", catalog: "", schedule: "" });
   const savedStateRef = useRef({ members, catalog, schedule: scheduleData });
+  const dirtyBaseRef = useRef({});
   const dirtyFieldsRef = useRef(new Set());
   const savingRef = useRef(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -642,74 +643,89 @@ export function App() {
     if (!supabase) return undefined;
     let cancelled = false;
     let channel;
-    const applyCloudState = (row, preserveDirtyFields = false) => {
-      const loadedMembers = normalizeMembers(row.members ?? []);
+    let reloadTimer;
+    const applyCloudState = (cloudState, preserveDirtyFields = false) => {
+      const loadedMembers = normalizeMembers(cloudState.members ?? []);
       const nextState = {
         members: loadedMembers,
-        catalog: normalizeCatalog(row.catalog),
-        schedule: normalizeScheduleData(row.schedule, loadedMembers),
-      };
-      lastSyncedRef.current = {
-        members: JSON.stringify(nextState.members),
-        catalog: JSON.stringify(nextState.catalog),
-        schedule: JSON.stringify(nextState.schedule),
+        catalog: normalizeCatalog(cloudState.catalog),
+        schedule: normalizeScheduleData(cloudState.schedule, loadedMembers),
       };
       savedStateRef.current = nextState;
-      if (!preserveDirtyFields) dirtyFieldsRef.current.clear();
+      if (!preserveDirtyFields) {
+        dirtyBaseRef.current = {};
+        dirtyFieldsRef.current.clear();
+      }
       if (!preserveDirtyFields || !dirtyFieldsRef.current.has("members")) setMembers(nextState.members);
       if (!preserveDirtyFields || !dirtyFieldsRef.current.has("catalog")) setCatalog(nextState.catalog);
       if (!preserveDirtyFields || !dirtyFieldsRef.current.has("schedule")) setScheduleData(nextState.schedule);
       setIsDirty(dirtyFieldsRef.current.size > 0);
       setCloudLoaded(true);
     };
+    const reloadCloudState = async (preserveDirtyFields) => {
+      const cloudState = await loadCloudBoard(supabase, {
+        earliestWeekStart: earliestVisibleWeekStart,
+        latestWeekStart: latestVisibleWeekStart,
+      });
+      if (!cancelled) applyCloudState(cloudState, preserveDirtyFields);
+    };
     const connect = async () => {
       setCloudStatus("connecting");
-      const { data, error } = await supabase.from("raid_board_state").select("members,catalog,schedule").eq("id", "guild-main").maybeSingle();
-      if (cancelled) return;
-      if (error) {
+      try {
+        await reloadCloudState(false);
+      } catch (error) {
+        if (cancelled) return;
         setCloudStatus("error");
-        setCloudMessage(error.code === "PGRST205" ? "Supabase에서 초기 설정 SQL을 실행해주세요." : error.message);
+        setCloudMessage(error.code === "PGRST205" ? "Supabase에서 DB 분리 SQL을 실행해주세요." : error.message);
         return;
       }
-      if (!data) {
-        setCloudStatus("error");
-        setCloudMessage("공용 DB 데이터가 없습니다. 관리자에게 문의해주세요.");
-        return;
-      }
-      applyCloudState(data);
       cloudReadyRef.current = true;
       setCloudStatus("connected");
       setCloudMessage("");
-      channel = supabase.channel("raid-board-state")
-        .on("postgres_changes", { event: "*", schema: "public", table: "raid_board_state", filter: "id=eq.guild-main" }, (payload) => {
-          if (payload.new?.members && !savingRef.current) applyCloudState(payload.new, true);
+      channel = supabase.channel(`normalized-raid-board-${crypto.randomUUID()}`);
+      realtimeBoardTables.forEach((table) => channel.on("postgres_changes", { event: "*", schema: "public", table }, () => {
+        if (savingRef.current) return;
+        clearTimeout(reloadTimer);
+        reloadTimer = setTimeout(() => reloadCloudState(true).then(() => {
           setCloudStatus("connected");
           setCloudMessage("");
-        })
-        .subscribe();
+        }).catch((error) => {
+          setCloudStatus("error");
+          setCloudMessage(error.message);
+        }), 50);
+      }));
+      channel.subscribe();
     };
     connect();
     return () => {
       cancelled = true;
+      clearTimeout(reloadTimer);
       cloudReadyRef.current = false;
       if (channel) supabase.removeChannel(channel);
     };
   }, []);
 
   useEffect(() => { localStorage.setItem("loa-active-week-v1", activeWeekStart); }, [activeWeekStart]);
-  const updateMembers = (value) => { dirtyFieldsRef.current.add("members"); setIsDirty(true); setMembers(value); };
-  const updateCatalog = (value) => { dirtyFieldsRef.current.add("catalog"); setIsDirty(true); setCatalog(value); };
-  const updateScheduleData = (value) => { dirtyFieldsRef.current.add("schedule"); setIsDirty(true); setScheduleData(value); };
+  const markDirty = (field) => {
+    if (!dirtyFieldsRef.current.has(field)) dirtyBaseRef.current[field] = savedStateRef.current[field];
+    dirtyFieldsRef.current.add(field);
+    setIsDirty(true);
+  };
+  const updateMembers = (value) => { markDirty("members"); setMembers(value); };
+  const updateCatalog = (value) => { markDirty("catalog"); setCatalog(value); };
+  const updateScheduleData = (value) => { markDirty("schedule"); setScheduleData(value); };
   const cancelChanges = () => {
     const saved = savedStateRef.current;
     setMembers(saved.members);
     setCatalog(saved.catalog);
     setScheduleData(saved.schedule);
+    dirtyBaseRef.current = {};
     dirtyFieldsRef.current.clear();
     setIsDirty(false);
   };
   const saveChanges = async () => {
     const state = { members, catalog, schedule: scheduleData };
+    let savedState = state;
     if (supabase && !cloudReadyRef.current) {
       setCloudMessage("공용 DB 연결이 끝난 뒤 저장해주세요.");
       return;
@@ -718,26 +734,42 @@ export function App() {
     savingRef.current = true;
     if (supabase) {
       setCloudStatus("saving");
-      const changedFields = [...dirtyFieldsRef.current].filter((field) => JSON.stringify(state[field]) !== lastSyncedRef.current[field]);
-      const changedState = Object.fromEntries(changedFields.map((field) => [field, state[field]]));
-      const { error } = changedFields.length
-        ? await supabase.from("raid_board_state").update({ ...changedState, updated_at: new Date().toISOString() }).eq("id", "guild-main")
-        : { error: null };
-      if (error) {
+      try {
+        const changeBase = {
+          members: dirtyBaseRef.current.members ?? savedStateRef.current.members,
+          catalog: dirtyBaseRef.current.catalog ?? savedStateRef.current.catalog,
+          schedule: dirtyBaseRef.current.schedule ?? savedStateRef.current.schedule,
+        };
+        const changes = buildBoardChanges(changeBase, state, dirtyFieldsRef.current);
+        await saveCloudBoardChanges(supabase, changes);
+        const cloudState = await loadCloudBoard(supabase, {
+          earliestWeekStart: earliestVisibleWeekStart,
+          latestWeekStart: latestVisibleWeekStart,
+        });
+        const loadedMembers = normalizeMembers(cloudState.members ?? []);
+        savedState = {
+          members: loadedMembers,
+          catalog: normalizeCatalog(cloudState.catalog),
+          schedule: normalizeScheduleData(cloudState.schedule, loadedMembers),
+        };
+        setMembers(savedState.members);
+        setCatalog(savedState.catalog);
+        setScheduleData(savedState.schedule);
+      } catch (error) {
         setCloudStatus("error");
         setCloudMessage(error.message);
         savingRef.current = false;
         setIsSaving(false);
         return;
       }
-      lastSyncedRef.current = Object.fromEntries(Object.entries(state).map(([field, value]) => [field, JSON.stringify(value)]));
       setCloudStatus("connected");
       setCloudMessage("");
     }
-    localStorage.setItem("loa-raid-members-v2", JSON.stringify(state.members));
-    localStorage.setItem("loa-raid-catalog-v1", JSON.stringify(state.catalog));
-    localStorage.setItem("loa-raid-schedule-v1", JSON.stringify(state.schedule));
-    savedStateRef.current = state;
+    localStorage.setItem("loa-raid-members-v2", JSON.stringify(savedState.members));
+    localStorage.setItem("loa-raid-catalog-v1", JSON.stringify(savedState.catalog));
+    localStorage.setItem("loa-raid-schedule-v1", JSON.stringify(savedState.schedule));
+    savedStateRef.current = savedState;
+    dirtyBaseRef.current = {};
     dirtyFieldsRef.current.clear();
     setIsDirty(false);
     savingRef.current = false;
@@ -788,5 +820,5 @@ export function App() {
   const cloudText = { connecting: "공용 DB 연결 중", connected: "공용 DB 연결됨", saving: "공용 일정 저장 중", error: "공용 DB 설정 필요", offline: "브라우저에만 저장 중" }[cloudStatus];
   const canGoNext = activeWeekStart < latestVisibleWeekStart;
   const canCopyNextWeek = canGoNext && scheduleDayKeys.some((key) => schedule[key]?.length);
-  return <div className="app-shell"><AppHeader activeTab={activeTab} setActiveTab={setActiveTab} /><div className={`cloud-status ${cloudStatus}`} title={cloudMessage}><i /><span>{cloudText}</span>{cloudMessage && <small>{cloudMessage}</small>}</div><div className="page-wrap">{!cloudLoaded ? <section className="info-banner"><strong>공용 일정 불러오는 중</strong><span>DB 연결이 완료되면 일정이 표시됩니다.</span></section> : <>{activeTab === "schedule" && <ScheduleView members={effectiveMembers} catalog={catalog} schedule={schedule} setSchedule={setCurrentSchedule} weekDays={weekDays} weekStart={activeWeekStart} canGoPrevious={activeWeekStart > earliestVisibleWeekStart} canGoNext={canGoNext} canCopyNextWeek={canCopyNextWeek} onPreviousWeek={() => setActiveWeekStart((weekStart) => clampVisibleWeek(shiftWeekKey(weekStart, -1)))} onCurrentWeek={() => setActiveWeekStart(currentWeekStart)} onNextWeek={() => setActiveWeekStart((weekStart) => clampVisibleWeek(shiftWeekKey(weekStart, 1)))} onCopyNextWeek={copyToNextWeek} onToggleUnavailable={toggleUnavailable} />}{activeTab === "personal" && <PersonalScheduleView members={effectiveMembers} schedule={schedule} catalog={catalog} weekDays={weekDays} weekStart={activeWeekStart} />}{activeTab === "members" && <MembersView members={effectiveMembers} setMembers={updateMembers} schedule={schedule} setSchedule={setCurrentSchedule} catalog={catalog} weekDays={weekDays} />}{activeTab === "raids" && <RaidsView catalog={catalog} setCatalog={updateCatalog} scheduleData={scheduleData} />}<SaveChangesBar isDirty={isDirty} isSaving={isSaving} onCancel={cancelChanges} onSave={saveChanges} /></>}</div></div>;
+  return <div className="app-shell"><AppHeader activeTab={activeTab} setActiveTab={setActiveTab} /><div className={`cloud-status ${cloudStatus}`} title={cloudMessage}><i /><span>{cloudText}</span>{cloudMessage && <small>{cloudMessage}</small>}</div><div className="page-wrap">{!cloudLoaded ? <section className="info-banner"><strong>공용 일정 불러오는 중</strong><span>DB 연결이 완료되면 일정이 표시됩니다.</span></section> : <><div className="tab-panel" hidden={activeTab !== "schedule"}><ScheduleView members={effectiveMembers} catalog={catalog} schedule={schedule} setSchedule={setCurrentSchedule} weekDays={weekDays} weekStart={activeWeekStart} canGoPrevious={activeWeekStart > earliestVisibleWeekStart} canGoNext={canGoNext} canCopyNextWeek={canCopyNextWeek} onPreviousWeek={() => setActiveWeekStart((weekStart) => clampVisibleWeek(shiftWeekKey(weekStart, -1)))} onCurrentWeek={() => setActiveWeekStart(currentWeekStart)} onNextWeek={() => setActiveWeekStart((weekStart) => clampVisibleWeek(shiftWeekKey(weekStart, 1)))} onCopyNextWeek={copyToNextWeek} onToggleUnavailable={toggleUnavailable} /></div><div className="tab-panel" hidden={activeTab !== "personal"}><PersonalScheduleView members={effectiveMembers} schedule={schedule} catalog={catalog} weekDays={weekDays} weekStart={activeWeekStart} /></div><div className="tab-panel" hidden={activeTab !== "members"}><MembersView members={effectiveMembers} setMembers={updateMembers} schedule={schedule} setSchedule={setCurrentSchedule} catalog={catalog} weekDays={weekDays} /></div><div className="tab-panel" hidden={activeTab !== "raids"}><RaidsView catalog={catalog} setCatalog={updateCatalog} scheduleData={scheduleData} /></div><SaveChangesBar isDirty={isDirty} isSaving={isSaving} onCancel={cancelChanges} onSave={saveChanges} /></>}</div></div>;
 }

@@ -6,14 +6,16 @@
 
 - [라이브 일정표](https://loa-raid-board.derod82.chatgpt.site/)
 - [Supabase 공용 DB 관리](https://supabase.com/dashboard/project/srdooyseixgxljsdmecc)
-- [DB 초기 설정 SQL](./supabase/setup.sql)
-- [DB 자동 백업 SQL](./supabase/change-history.sql)
-- [예전 초기 일정 차단 SQL](./supabase/prevent-legacy-seed-overwrite.sql)
+- [DB 스크립트 실행 순서](./supabase/README.md)
+- [DB 마이그레이션 목록](./supabase/migrations/)
+- [DB 테이블 분리 마이그레이션 SQL](./supabase/migrations/202608140001_normalize_board_storage.sql)
+- [DB 분리 결과 확인 SQL](./supabase/checks/verify_normalized_storage.sql)
 - [GitHub 소스 저장소](https://github.com/hwanginjae82/Loa)
 
 ## 저장 방식
 
-- 멤버, 레이드 목록, 주간 일정: Supabase 공용 DB
+- 멤버, 캐릭터, 레이드 목록: Supabase의 개별 행
+- 주간 일정과 불참 정보: `week_start` 기준 주차별 행
 - 내 멤버 및 내 캐릭터 선택: 각 사용자의 브라우저
 - 로스트아크 API 키와 Supabase 환경값: 로컬 환경 파일과 배포 환경에서만 관리
 
